@@ -1,7 +1,11 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.routes import elevenlabs_webhook
+from app.routes.route import router
 from app.core.config import settings
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 app = FastAPI(
     title="Humming Bird Backend",
@@ -19,8 +23,8 @@ app.add_middleware(
 )
 
 # Include routers
-app.include_router(elevenlabs_webhook.router, prefix="/api/v1", tags=["webhooks"])
+app.include_router(router, prefix="/api/v1")
 
 @app.get("/")
 async def root():
-    return {"message": "Welcome to Humming Bird Backend API"} 
+    return {"message": "Welcome to Humming Bird Backend API"}
