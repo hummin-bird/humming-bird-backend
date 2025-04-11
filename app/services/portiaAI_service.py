@@ -7,6 +7,9 @@ import json
 import threading
 
 logger = logging.getLogger(__name__)
+# Get the directory of the current script
+current_dir = os.path.dirname(os.path.abspath(__file__))
+
 load_dotenv() 
 GOOGLE_API_KEY = os.getenv("GEMINI_API_KEY")
 
@@ -51,7 +54,7 @@ class PortiaAIService:
                          )
 
         # initiation_plan = json.load(open('humming-bird-backend/app/services/initiation_plan.json'))
-        with open('humming-bird-backend/app/services/initiation_plan.json', 'r') as f:
+        with open(os.path.join(current_dir, 'initiation_plan.json'), 'r') as f:
             plan_json = f.read()
             initiation_plan = Plan.model_validate_json(plan_json)
             initiation_plan.plan_context.query = text_data["user_query"]
@@ -101,5 +104,6 @@ if __name__ == "__main__":
     import asyncio
     msg = {"user_query": "I want to build a website to sell cars"}
     service = PortiaAIService() 
-    asyncio.run(service.init_portia(msg))
+    result = asyncio.run(service.init_portia(msg))
+    print(result)
     
