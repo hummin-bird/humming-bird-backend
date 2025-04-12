@@ -6,4 +6,3 @@ pydantic-settings==2.8.1
 python-multipart==0.0.9
 portia-sdk-python==0.1.14
 websockets==12.0
-fastapi-websockets==0.0.1
