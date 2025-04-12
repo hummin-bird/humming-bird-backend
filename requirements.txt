@@ -1,7 +1,7 @@
-fastapi
-uvicorn
-python-dotenv
-pydantic
-pydantic-settings
-python-multipart
-portia-sdk-python
+fastapi==0.109.2
+uvicorn==0.27.1
+python-dotenv==1.0.1
+pydantic==2.11.3
+pydantic-settings==2.8.1
+python-multipart==0.0.9
+portia-sdk-python==0.1.14
