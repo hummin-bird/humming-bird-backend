@@ -162,24 +162,8 @@ async def fetch_product_suggestions(session_id: str) -> List[Dict[str, Any]]:
 
             try:
                 # Generate tools and get products
-                await portia_service.generate_tools(conversation_text)
+                products = await portia_service.generate_tools(conversation_text)
                 logger.info(f"Successfully generated tools for session {session_id}")
-
-                # Get products for each step (assuming 3 steps as shown in the example)
-                products = []
-                for step in range(3):
-                    try:
-                        step_products = portia_service.get_products(step)
-                        if step_products:  # Only extend if we got products
-                            products.extend(step_products)
-                            logger.info(
-                                f"Retrieved {len(step_products)} products for step {step} in session {session_id}"
-                            )
-                    except Exception as e:
-                        logger.error(
-                            f"Error getting products for step {step} in session {session_id}: {str(e)}"
-                        )
-                        continue
 
                 if not products:  # If no products were retrieved
                     logger.warning(f"No products retrieved for session {session_id}")
