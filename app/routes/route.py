@@ -7,7 +7,12 @@ from app.services.fetchers import (
     call_deepresearch,
     fetch_product_suggestions,
     store_conversation,
+    conversations,
 )
+from app.utils.websocket_manager import websocket_manager
+from app.services.portiai_service import PortiaAIService
+import time
+import asyncio
 
 logger = logging.getLogger(__name__)
 
@@ -83,8 +88,47 @@ async def get_products(session_id: str, request: Request):
         await verify_webhook_signature(request)
 
         try:
-            # Final call to research model for product listing
-            products = await fetch_product_suggestions(session_id)
+            # Create a session-specific PortiaAIService
+            service = PortiaAIService(session_id=session_id)
+            
+            # Get the conversation history for this session
+            if session_id not in conversations or not conversations[session_id]:
+                logger.warning(f"No conversation history found for session {session_id}")
+                return {
+                    "products": [
+                        {
+                            "id": "default",
+                            "name": "No products available",
+                            "description": "Please complete the conversation to get personalized product suggestions",
+                            "website_url": "https://example.com",
+                            "image_url": "https://example.com/image.jpg",
+                        }
+                    ]
+                }
+
+            # Create a text data string from the conversation history
+            text_data = ""
+            for entry in conversations[session_id]:
+                if entry["user_input"]:
+                    text_data += f"User: {entry['user_input']}\n"
+                if entry["clarifying_question"]:
+                    text_data += f"Assistant: {entry['clarifying_question']}\n"
+
+            # Wait for WebSocket connection to be established
+            max_wait_time = 10  # seconds
+            start_time = time.time()
+            
+            while time.time() - start_time < max_wait_time:
+                if session_id in websocket_manager.active_connections:
+                    break
+                await asyncio.sleep(0.1)
+            
+            if session_id not in websocket_manager.active_connections:
+                logger.warning(f"No WebSocket connection established for session {session_id} after {max_wait_time} seconds")
+                # Continue anyway, but log a warning
+
+            # Generate products using PortiaAIService
+            products = await service.generate_tools(text_data)
             logger.info(f"Retrieved {len(products)} products for session {session_id}")
             return {"products": products}
         except Exception as e:
