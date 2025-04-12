@@ -27,7 +27,7 @@ from portia import (
     InMemoryToolRegistry,
     Plan,
 )
-from custom_tool import LLMstructureTool, LLMlistTool
+from app.services.custom_tool import LLMstructureTool, LLMlistTool
 
 custom_tool_registry = InMemoryToolRegistry.from_local_tools(
     [
