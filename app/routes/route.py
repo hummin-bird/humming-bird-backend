@@ -38,17 +38,25 @@ async def verify_webhook_signature(request: Request) -> Dict[str, Any]:
     Verify the webhook signature from ElevenLabs if present
     """
     try:
+        # For GET requests, we don't expect a body
+        if request.method == "GET":
+            logger.info("GET request, skipping body verification")
+            return {}
+            
         body = await request.body()
         signature = request.headers.get("X-ElevenLabs-Signature")
         
         # Log the incoming request
         logger.info(f"Incoming request: {request.method} {request.url}")
         logger.info(f"Headers: {dict(request.headers)}")
-        logger.info(f"Body: {body.decode()}")
+        if body:
+            logger.info(f"Body: {body.decode()}")
         
         # If no signature is present, just return the parsed body
         if not signature:
             logger.info("No signature present, skipping verification")
+            if not body:
+                return {}
             return json.loads(body)
         
         # If signature is present but no secret is configured
