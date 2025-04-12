@@ -15,7 +15,7 @@ app = FastAPI(
     version="0.1.0",
 )
 
-# Configure CORS
+# Configure CORS for both HTTP and WebSocket
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],  # In production, replace with specific origins
@@ -31,6 +31,16 @@ app.include_router(router, prefix="/api/v1")
 @app.websocket("/ws/logs/{session_id}")
 async def websocket_endpoint(websocket: WebSocket, session_id: str):
     from app.utils.websocket_manager import websocket_manager
+    
+    # Accept the WebSocket connection
+    await websocket.accept()
+    
+    # Add CORS headers for WebSocket
+    await websocket.send_json({
+        "type": "connection_established",
+        "message": "WebSocket connection established"
+    })
+    
     await websocket_manager.connect(websocket, session_id)
     try:
         while True:
