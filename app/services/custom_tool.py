@@ -104,6 +104,7 @@ class LLMstructureTool(Tool[str]):
         return response.model_dump(mode="json")
 
 
+
 class ListSchema(BaseModel):
     products: List
 
@@ -188,7 +189,50 @@ class LogoSearchTool(Tool[str]):
         "The search tool can access general website information but will only return a logo URL and no other data."
     )
     args_schema: type[BaseModel] = SearchToolSchema
-    output_schema: tuple[Union[str, Type[BaseModel]], str]
+    output_schema: tuple[str, str] = (
+        "str",
+        "The URL of the logo image (preferably in PNG or SVG format).",
+    )
+    should_summarize: bool = True
+
+    def run(self, _: ToolRunContext, search_query: str) -> str:
+        """Run the Search Tool."""
+        api_key = os.getenv("TAVILY_API_KEY")
+        if not api_key or api_key == "":
+            raise ToolHardError("TAVILY_API_KEY is required to use search")
+
+        url = "https://api.tavily.com/search"
+
+        payload = {
+            "query": search_query,
+            "include_answer": True,
+            "api_key": api_key,
+        }
+        headers = {"Content-Type": "application/json"}
+
+        response = httpx.post(url, headers=headers, json=payload)
+        response.raise_for_status()
+        json_response = response.json()
+        if "answer" in json_response:
+            results = json_response["results"]
+            return results[:MAX_RESULTS]
+        raise ToolSoftError(f"Failed to get answer to search: {json_response}")
+
+class WebsiteSearchTool(Tool[str]):
+    """Searches the internet to find answers to the search query provided.."""
+
+    id: str = "website_search_tool"
+    name: str = "Website Search Tool"
+    description: str = (
+    "Searches the internet (using Tavily) to find one website provided in the search query. "
+    "Returns only the URL of the website."
+    "The search tool can access general website information but will only return a URL and no other data."
+    )
+    args_schema: type[BaseModel] = SearchToolSchema
+    output_schema: tuple[str, str] = (
+        "str",
+        "The URL of the website.",
+    )
     should_summarize: bool = True
 
     def run(self, _: ToolRunContext, search_query: str) -> str:
@@ -240,5 +284,61 @@ class LogoSearchTool(Tool[str]):
                     
         finally:
             client.close()
+
+        raise ToolSoftError("Failed to get search results after all attempts")
+
+class SearchTool(Tool[str]):
+    """Searches the internet to find answers to the search query provided.."""
+
+    id: str = "search_tool"
+    name: str = "Search Tool"
+    description: str = (
+        "Searches the internet (using Tavily) to find answers to the search query provided and "
+        "returns those answers, including images, links and a natural language answer. "
+        "The search tool has access to general information but can not return specific "
+        "information on users or information not available on the internet."
+    )
+    args_schema: type[BaseModel] = SearchToolSchema
+    output_schema: tuple[str, str] = ("str", "str: output of the search results")
+    should_summarize: bool = True
+
+    def run(self, _: ToolRunContext, search_query: str) -> str:
+        """Run the Search Tool."""
+        api_key = os.getenv("TAVILY_API_KEY")
+        if not api_key or api_key == "":
+            raise ToolHardError("TAVILY_API_KEY is required to use search")
+
+        url = "https://api.tavily.com/search"
+        headers = {"Content-Type": "application/json"}
+        payload = { 
+            "query": search_query,
+            "include_answer": True,
+            "api_key": api_key,
+        }
+
+    
+        try:
+            # Try the request with retries
+            for attempt in range(3):
+                try:
+                    response = httpx.post(url, headers=headers, json=payload, timeout=30)
+                    response.raise_for_status()
+                    json_response = response.json()
+                    
+                    if "answer" in json_response:
+                        results = json_response["results"]
+                        return results[:MAX_RESULTS]
+                    else:
+                        raise ToolSoftError(f"Failed to get answer to search: {json_response}")
+                        
+                except (httpx.ReadTimeout, httpx.ConnectTimeout) as e:
+                    if attempt == 2:  # Last attempt
+                        raise ToolSoftError(f"Search timed out after {attempt + 1} attempts: {str(e)}")
+                    continue
+                except httpx.HTTPError as e:
+                    raise ToolSoftError(f"HTTP error during search: {str(e)}")
+                    
+        finally:
+            raise ToolSoftError(f"Failed to get answer to search: {json_response}")
 
         raise ToolSoftError("Failed to get search results after all attempts")
