@@ -12,6 +12,16 @@ logger = setup_logger(__name__, "portia_ai.log")
 # Get the directory of the current script
 current_dir = os.path.dirname(os.path.abspath(__file__))
 
+def clean_text(text: str) -> str:
+    """
+    Clean text by removing control characters and extra whitespace
+    """
+    # Remove control characters
+    text = re.sub(r'[\x00-\x1F\x7F-\x9F]', '', text)
+    # Remove extra whitespace
+    text = re.sub(r'\s+', ' ', text).strip()
+    return text
+
 load_dotenv()
 
 from portia import (
@@ -70,29 +80,38 @@ class PortiaAIService:
             ],
         )
         logger.info("Load all curstom tools")
-        # initiation_plan = json.load(open('humming-bird-backend/app/services/initiation_plan.json'))
-        with open(os.path.join(current_dir, "generation_plan.json"), "r") as f:
-            plan_json = f.read()
+        
+        try:
+            with open(os.path.join(current_dir, "generation_plan.json"), "r") as f:
+                plan_json = f.read()
+                
+                # Clean the text data
+                cleaned_text = clean_text(text_data)
+                
+                # Replace PRODUCT_INFO with the cleaned text data
+                plan_json = plan_json.replace("PRODUCT_INFO", cleaned_text)
+
+                try:
+                    initiation_plan = Plan.model_validate_json(plan_json)
+                    initiation_plan.id = PlanUUID()
+                except Exception as e:
+                    logger.error(f"Error validating plan JSON: {str(e)}")
+                    logger.error(f"Plan JSON content: {plan_json[:500]}...")  # Log first 500 chars of problematic JSON
+                    raise
+
+            logger.info("load saved plan")
+            with execution_context(end_user_id="demo"):
+                self.portia.storage.save_plan(initiation_plan)
+                self.plan_run = self.portia.run_plan(initiation_plan)
+            logger.info("Plan finished")
+
+            output = self.plan_run.outputs.step_outputs[f"$structured_output"].value
+            logger.info("Products Achieved")
+            return output["products"]
             
-            # Replace PRODUCT_INFO with the text data
-            plan_json = plan_json.replace("PRODUCT_INFO", text_data)
-
-            try:
-                initiation_plan = Plan.model_validate_json(plan_json)
-                initiation_plan.id = PlanUUID()
-            except Exception as e:
-                logger.error(f"Error validating plan JSON: {str(e)}")
-                raise
-
-        logger.info("load saved plan")
-        with execution_context(end_user_id="demo"):
-            self.portia.storage.save_plan(initiation_plan)
-            self.plan_run = self.portia.run_plan(initiation_plan)
-        logger.info("Plan finished")
-
-        output = self.plan_run.outputs.step_outputs[f"$structured_output"].value
-        logger.info("Products Achieved")
-        return output["products"]
+        except Exception as e:
+            logger.error(f"Error in generate_tools: {str(e)}")
+            raise
 
     def get_products(self, id: int):
         output = self.plan_run.outputs.step_outputs[
