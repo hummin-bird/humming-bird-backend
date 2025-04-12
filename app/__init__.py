@@ -1,3 +1,0 @@
-"""
-Humming Bird Backend Application
-"""
