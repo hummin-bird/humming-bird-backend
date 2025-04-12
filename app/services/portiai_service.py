@@ -79,11 +79,16 @@ class PortiaAIService:
                 
                 # Broadcast to WebSocket
                 if self.session_id:
-                    await websocket_manager.broadcast_log(
-                        self.session_id, 
-                        log_message, 
-                        log_record.levelname
-                    )
+                    try:
+                        await websocket_manager.broadcast_log(
+                            self.session_id, 
+                            log_message, 
+                            log_record.levelname
+                        )
+                    except Exception as e:
+                        logger.error(f"Error broadcasting log to WebSocket: {str(e)}")
+                        # Don't break here, continue processing logs
+                        
             except Exception as e:
                 logger.error(f"Error streaming Portia logs: {str(e)}")
                 break

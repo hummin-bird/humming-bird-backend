@@ -50,7 +50,14 @@ async def websocket_endpoint(websocket: WebSocket, session_id: str):
             try:
                 # Wait for any message from the client
                 data = await websocket.receive_text()
-                # You can handle client messages here if needed
+                
+                # Handle ping/pong messages
+                if data == "pong":
+                    continue
+                
+                # You can handle other client messages here if needed
+                logger.debug(f"Received message from client: {data}")
+                
             except Exception as e:
                 logger.error(f"Error receiving message for session {session_id}: {str(e)}")
                 break
