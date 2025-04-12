@@ -7,6 +7,7 @@ from app.services.fetchers import (
     call_deepresearch,
     fetch_product_suggestions,
     store_conversation,
+    conversations,
 )
 from app.utils.websocket_manager import websocket_manager
 from app.services.portiai_service import PortiaAIService
