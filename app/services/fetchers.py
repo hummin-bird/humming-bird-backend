@@ -2,6 +2,8 @@ import logging
 from typing import Optional, List, Dict, Any
 import random
 import asyncio
+import json
+from datetime import datetime
 
 logger = logging.getLogger(__name__)
 
@@ -43,9 +45,8 @@ session_lock = asyncio.Lock()
 
 async def call_deepresearch(user_input: str, session_id: str) -> Optional[str]:
     try:
-        logger.info(
-            f"Calling deep research for session {session_id} with input: {user_input}"
-        )
+        logger.info(f"Starting deep research for session {session_id}")
+        logger.debug(f"User input: {user_input[:100]}...")
 
         async with session_lock:
             # Initialize session tracking if it doesn't exist
@@ -53,6 +54,7 @@ async def call_deepresearch(user_input: str, session_id: str) -> Optional[str]:
                 session_questions[session_id] = {
                     category: [] for category in QUESTION_CATEGORIES.keys()
                 }
+                logger.debug(f"Initialized new session questions for {session_id}")
 
             # Get available categories (those that haven't had any questions asked)
             available_categories = [
@@ -60,6 +62,9 @@ async def call_deepresearch(user_input: str, session_id: str) -> Optional[str]:
                 for category in QUESTION_CATEGORIES.keys()
                 if not session_questions[session_id][category]
             ]
+            logger.debug(
+                f"Available categories for {session_id}: {available_categories}"
+            )
 
             if not available_categories:
                 logger.info(f"No more questions available for session {session_id}")
@@ -67,83 +72,152 @@ async def call_deepresearch(user_input: str, session_id: str) -> Optional[str]:
 
             # Randomly select a category
             selected_category = random.choice(available_categories)
+            logger.debug(f"Selected category: {selected_category}")
 
             # Get all questions for this category
             available_questions = QUESTION_CATEGORIES[selected_category]
 
             # Select a random question from available ones
             selected_question = random.choice(available_questions)
+            logger.debug(f"Selected question: {selected_question[:100]}...")
 
             # Mark this question as asked
             session_questions[session_id][selected_category].append(selected_question)
+            logger.info(f"Question marked as asked for session {session_id}")
 
-            logger.info(
-                f"Selected question from category '{selected_category}' for session {session_id}"
-            )
             return selected_question
 
     except Exception as e:
-        logger.error(f"Error in deep research call: {str(e)}")
+        logger.error(f"Error in deep research call for session {session_id}: {str(e)}")
         raise
 
 
 async def fetch_product_suggestions(session_id: str) -> List[Dict[str, Any]]:
     try:
-        # Replace with actual logic
-        logger.info(f"Fetching product suggestions for session {session_id}")
+        logger.info(f"Starting product suggestions fetch for session {session_id}")
 
         # Get the conversation history for this session
-        if session_id not in conversations:
+        if session_id not in conversations or not conversations[session_id]:
             logger.warning(f"No conversation history found for session {session_id}")
-            return []
+            return [
+                {
+                    "id": "default",
+                    "name": "No products available",
+                    "description": "Please complete the conversation to get personalized product suggestions",
+                    "website_url": "https://example.com",
+                    "image_url": "https://example.com/image.jpg",
+                }
+            ]
 
         # Create a text data string from the conversation history
-        text_data = "\n".join(
-            [
-                f"User: {entry['user_input']}\nAssistant: {entry['clarifying_question']}"
-                for entry in conversations[session_id]
-            ]
-        )
-
-        # Initialize PortiaAI service
-        portia_service = PortiaAIService()
-
         try:
-            # Generate tools and get products
-            await portia_service.generate_tools(text_data)
-            logger.info(f"Successfully generated tools for session {session_id}")
-
-            # Get products for each step (assuming 3 steps as shown in the example)
-            products = []
-            for step in range(3):
-                try:
-                    step_products = portia_service.get_products(step)
-                    products.extend(step_products)
-                    logger.info(
-                        f"Retrieved {len(step_products)} products for step {step} in session {session_id}"
-                    )
-                except Exception as e:
-                    logger.error(
-                        f"Error getting products for step {step} in session {session_id}: {str(e)}"
-                    )
-                    continue
-
-            logger.info(
-                f"Successfully retrieved {len(products)} total products for session {session_id}"
+            text_data = "\n".join(
+                [
+                    f"User: {entry['user_input']}\nAssistant: {entry['clarifying_question']}"
+                    for entry in conversations[session_id]
+                    if entry["user_input"] and entry["clarifying_question"]
+                ]
             )
-            return products
+
+            if not text_data:
+                logger.warning(f"Empty conversation history for session {session_id}")
+                return [
+                    {
+                        "id": "default",
+                        "name": "No products available",
+                        "description": "Please complete the conversation to get personalized product suggestions",
+                        "website_url": "https://example.com",
+                        "image_url": "https://example.com/image.jpg",
+                    }
+                ]
+
+            logger.debug(
+                f"Created text data from conversation history for session {session_id}"
+            )
+
+            # Initialize PortiaAI service
+            portia_service = PortiaAIService()
+            logger.debug("Initialized PortiaAI service")
+
+            try:
+                # Generate tools and get products
+                await portia_service.generate_tools(text_data)
+                logger.info(f"Successfully generated tools for session {session_id}")
+
+                # Get products for each step (assuming 3 steps as shown in the example)
+                products = []
+                for step in range(3):
+                    try:
+                        step_products = portia_service.get_products(step)
+                        if step_products:  # Only extend if we got products
+                            products.extend(step_products)
+                            logger.info(
+                                f"Retrieved {len(step_products)} products for step {step} in session {session_id}"
+                            )
+                    except Exception as e:
+                        logger.error(
+                            f"Error getting products for step {step} in session {session_id}: {str(e)}"
+                        )
+                        continue
+
+                if not products:  # If no products were retrieved
+                    logger.warning(f"No products retrieved for session {session_id}")
+                    return [
+                        {
+                            "id": "default",
+                            "name": "No products available",
+                            "description": "Please complete the conversation to get personalized product suggestions",
+                            "website_url": "https://example.com",
+                            "image_url": "https://example.com/image.jpg",
+                        }
+                    ]
+
+                logger.info(
+                    f"Successfully retrieved {len(products)} total products for session {session_id}"
+                )
+                return products
+
+            except Exception as e:
+                logger.error(
+                    f"Error in PortiaAI service for session {session_id}: {str(e)}"
+                )
+                return [
+                    {
+                        "id": "default",
+                        "name": "Error retrieving products",
+                        "description": "We encountered an error while retrieving product suggestions. Please try again later.",
+                        "website_url": "https://example.com",
+                        "image_url": "https://example.com/image.jpg",
+                    }
+                ]
 
         except Exception as e:
             logger.error(
-                f"Error in PortiaAI service for session {session_id}: {str(e)}"
+                f"Error processing conversation history for session {session_id}: {str(e)}"
             )
-            raise
+            return [
+                {
+                    "id": "default",
+                    "name": "Error processing request",
+                    "description": "We encountered an error while processing your request. Please try again later.",
+                    "website_url": "https://example.com",
+                    "image_url": "https://example.com/image.jpg",
+                }
+            ]
 
     except Exception as e:
         logger.error(
             f"Error fetching product suggestions for session {session_id}: {str(e)}"
         )
-        raise
+        return [
+            {
+                "id": "default",
+                "name": "Error",
+                "description": "We encountered an error. Please try again later.",
+                "website_url": "https://example.com",
+                "image_url": "https://example.com/image.jpg",
+            }
+        ]
 
 
 def store_conversation(
@@ -153,16 +227,32 @@ def store_conversation(
     Store conversation data for a session
     """
     try:
+        logger.info(f"Storing conversation for session {session_id}")
+        logger.debug(f"User input: {user_input[:100]}...")
+        logger.debug(
+            f"Clarifying question: {clarifying_question[:100] if clarifying_question else 'None'}"
+        )
+
         if session_id not in conversations:
             conversations[session_id] = []
+            logger.debug(
+                f"Initialized new conversation history for session {session_id}"
+            )
 
         conversation_entry = {
             "user_input": user_input,
             "clarifying_question": clarifying_question,
+            "timestamp": datetime.now().isoformat(),
         }
 
         conversations[session_id].append(conversation_entry)
-        logger.info(f"Stored conversation for session {session_id}")
+        logger.info(f"Successfully stored conversation entry for session {session_id}")
+
+        # Log the current state of the conversation
+        logger.debug(
+            f"Current conversation length for session {session_id}: {len(conversations[session_id])}"
+        )
+
     except Exception as e:
-        logger.error(f"Error storing conversation: {str(e)}")
+        logger.error(f"Error storing conversation for session {session_id}: {str(e)}")
         raise
