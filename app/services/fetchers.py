@@ -1,6 +1,7 @@
 import logging
 from typing import Optional, List, Dict, Any
 import random
+import asyncio
 
 logger = logging.getLogger(__name__)
 
@@ -38,6 +39,8 @@ QUESTION_CATEGORIES = {
 
 # Track which questions have been asked for each session
 session_questions = {}
+# Lock for synchronizing access to session_questions
+session_lock = asyncio.Lock()
 
 
 async def call_deepresearch(user_input: str, session_id: str) -> Optional[str]:
@@ -46,44 +49,45 @@ async def call_deepresearch(user_input: str, session_id: str) -> Optional[str]:
             f"Calling deep research for session {session_id} with input: {user_input}"
         )
 
-        # Initialize session tracking if it doesn't exist
-        if session_id not in session_questions:
-            session_questions[session_id] = {
-                category: [] for category in QUESTION_CATEGORIES.keys()
-            }
+        async with session_lock:
+            # Initialize session tracking if it doesn't exist
+            if session_id not in session_questions:
+                session_questions[session_id] = {
+                    category: [] for category in QUESTION_CATEGORIES.keys()
+                }
 
-        # Get available categories (those that haven't had all questions asked)
-        available_categories = [
-            category
-            for category, questions in QUESTION_CATEGORIES.items()
-            if len(session_questions[session_id][category]) < len(questions)
-        ]
+            # Get available categories (those that haven't had all questions asked)
+            available_categories = [
+                category
+                for category, questions in QUESTION_CATEGORIES.items()
+                if len(session_questions[session_id][category]) < len(questions)
+            ]
 
-        if not available_categories:
-            logger.info(f"No more questions available for session {session_id}")
-            return "All needed clarifications have been gathered, please end the conversation"
+            if not available_categories:
+                logger.info(f"No more questions available for session {session_id}")
+                return "All needed clarifications have been gathered, please end the conversation"
 
-        # Randomly select a category
-        selected_category = random.choice(available_categories)
+            # Randomly select a category
+            selected_category = random.choice(available_categories)
 
-        # Get available questions for this category
-        asked_questions = session_questions[session_id][selected_category]
-        available_questions = [
-            q
-            for q in QUESTION_CATEGORIES[selected_category]
-            if q not in asked_questions
-        ]
+            # Get available questions for this category
+            asked_questions = session_questions[session_id][selected_category]
+            available_questions = [
+                q
+                for q in QUESTION_CATEGORIES[selected_category]
+                if q not in asked_questions
+            ]
 
-        # Select a random question from available ones
-        selected_question = random.choice(available_questions)
+            # Select a random question from available ones
+            selected_question = random.choice(available_questions)
 
-        # Mark this question as asked
-        session_questions[session_id][selected_category].append(selected_question)
+            # Mark this question as asked
+            session_questions[session_id][selected_category].append(selected_question)
 
-        logger.info(
-            f"Selected question from category '{selected_category}' for session {session_id}"
-        )
-        return selected_question
+            logger.info(
+                f"Selected question from category '{selected_category}' for session {session_id}"
+            )
+            return selected_question
 
     except Exception as e:
         logger.error(f"Error in deep research call: {str(e)}")
