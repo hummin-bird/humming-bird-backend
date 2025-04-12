@@ -1,0 +1,158 @@
+{
+  "id": "plan-30289c0e-6954-4da7-9f8c-6aa989968df4",
+  "plan_context": {
+    "query": "The user wants to build a projduct, Find out what product does the user want to                     build within 'website', 'webApp', 'mobileApp', 'desktopApp'. Then find out                    what kind of information is required before building the product. If the                    information is not available, ask the user for the information. Keep asking until                    the storage has all the information required to start building. Then define                    the development steps in a bullet list. For each step, search the internet and give me 5 best tools i can use.",
+    "tool_ids": [
+      "calculator_tool",
+      "file_reader_tool",
+      "file_writer_tool",
+      "image_understanding_tool",
+      "llm_tool",
+      "portia:github::list_repos",
+      "portia:github::search_repos",
+      "portia:github::star_repo",
+      "portia:google:docs:get_document",
+      "portia:google:docs:get_structured_document",
+      "portia:google:drive:search",
+      "portia:google:gcalendar:check_availability",
+      "portia:google:gcalendar:create_event",
+      "portia:google:gcalendar:delete_event",
+      "portia:google:gcalendar:get_event_details",
+      "portia:google:gcalendar:get_events_by_properties",
+      "portia:google:gcalendar:modify_event",
+      "portia:google:gmail:draft_email",
+      "portia:google:gmail:search_email",
+      "portia:google:gmail:send_draft_email",
+      "portia:google:gmail:send_email",
+      "portia:google:places:search",
+      "portia:google:sheets:get_spreadsheet",
+      "portia:linear::get_issue_by_id",
+      "portia:linear::search_issue_by_keywords",
+      "portia:slack:bot:list_conversation_ids",
+      "portia:slack:bot:list_user_ids",
+      "portia:slack:bot:send_message",
+      "portia:slack:user:conversation_history",
+      "portia:slack:user:find_message",
+      "portia:tavily::search",
+      "portia:zendesk:groups:list_groups_for_user",
+      "portia:zendesk:help_center:create_article_comments",
+      "portia:zendesk:help_center:list_article_comments",
+      "portia:zendesk:help_center:list_articles_by_section",
+      "portia:zendesk:help_center:list_post_comments",
+      "portia:zendesk:help_center:search_articles",
+      "portia:zendesk:help_center:show_article",
+      "portia:zendesk:help_center:show_post",
+      "portia:zendesk:help_center:show_section",
+      "portia:zendesk:organizations:search",
+      "portia:zendesk:organizations:show",
+      "portia:zendesk:requests:list_comments",
+      "portia:zendesk:requests:search",
+      "portia:zendesk:requests:show",
+      "portia:zendesk:requests:show_comment",
+      "portia:zendesk:tickets:count",
+      "portia:zendesk:tickets:count_comments",
+      "portia:zendesk:tickets:create",
+      "portia:zendesk:tickets:list_comments",
+      "portia:zendesk:tickets:show",
+      "portia:zendesk:tickets:show_metrics",
+      "portia:zendesk:tickets:update",
+      "portia:zendesk:users:search",
+      "portia:zendesk:users:show",
+      "search_tool",
+      "weather_tool"
+    ]
+  },
+  "steps": [
+    {
+      "task": "Find out what product the user wants to build within 'website', 'webApp', 'mobileApp', 'desktopApp'.",
+      "inputs": [],
+      "tool_id": "llm_tool",
+      "output": "$product_type",
+      "condition": null
+    },
+    {
+      "task": "Find out what kind of information is required before building the $product_type.",
+      "inputs": [
+        {
+          "name": "$product_type",
+          "description": "The type of product the user wants to build."
+        }
+      ],
+      "tool_id": "llm_tool",
+      "output": "$required_information",
+      "condition": null
+    },
+    {
+      "task": "Check if all the information required to start building the product is available.",
+      "inputs": [
+        {
+          "name": "$required_information",
+          "description": "The information required before building the product."
+        }
+      ],
+      "tool_id": "llm_tool",
+      "output": "$information_available",
+      "condition": null
+    },
+    {
+      "task": "Ask the user for the missing information.",
+      "inputs": [
+        {
+          "name": "$required_information",
+          "description": "The information required before building the product."
+        },
+        {
+          "name": "$information_available",
+          "description": "Whether the information is available or not."
+        }
+      ],
+      "tool_id": "llm_tool",
+      "output": "$missing_information",
+      "condition": "If not all information is available to start building the product."
+    },
+    {
+      "task": "Repeat steps 3 and 4 until all required information is collected.",
+      "inputs": [
+        {
+          "name": "$missing_information",
+          "description": "The missing information from the user."
+        },
+        {
+          "name": "$required_information",
+          "description": "The information required before building the product."
+        }
+      ],
+      "tool_id": "llm_tool",
+      "output": "$all_information",
+      "condition": "If not all information is available to start building the product."
+    },
+    {
+      "task": "Define the development steps in a bullet list to build the $product_type.",
+      "inputs": [
+        {
+          "name": "$product_type",
+          "description": "The type of product to build."
+        },
+        {
+          "name": "$all_information",
+          "description": "All required information to build the product."
+        }
+      ],
+      "tool_id": "llm_tool",
+      "output": "$development_steps",
+      "condition": null
+    },
+    {
+      "task": "For each step in $development_steps, search the internet and give 5 best tools i can use.",
+      "inputs": [
+        {
+          "name": "$development_steps",
+          "description": "The development steps in a bullet list."
+        }
+      ],
+      "tool_id": "llm_tool",
+      "output": "$tools_per_step",
+      "condition": null
+    }
+  ]
+}

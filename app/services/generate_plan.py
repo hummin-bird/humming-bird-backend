@@ -7,10 +7,19 @@ from portia import (
     LLMProvider,
     open_source_tool_registry,
     execution_context,
-    LLMModel
+    LLMModel,
+    InMemoryToolRegistry
 )
 import os
 import json
+from custom_tool import LLMstructureTool, LLMlistTool
+
+custom_tool_registry = InMemoryToolRegistry.from_local_tools(
+    [
+        LLMstructureTool(),
+        LLMlistTool(),
+    ],
+)
 
 load_dotenv() 
 GOOGLE_API_KEY = os.getenv("GEMINI_API_KEY")
@@ -22,36 +31,41 @@ INITIATION = "The user wants to build a product,\
         step 4: Check if the dictionary is full. \
         step 5: if the dictionary is not full, Pause the plan run, trigger clarification plan. "
 
-# GENERATION = " extract the information dictionary with corresponding user_id. \
-#         step 1: if the dictionary is full, \
-#        step 6: Keep asking until the storage has all the information required to start building. \
-#         step 7: Then define the development steps in a bullet list. \
-#         step 8: For each step, search the internet \
-#         and give me 5 best tools i can use."
+LOGO_SEARCH = "Search online for the official logo image URL of the product available on the website: https://chatgpt.com. Prefer high-quality, transparent PNG or SVG formats. Return a direct link to the logo hosted on the official domain if possible. "
 
-CLARIFICATION = "The user has provided the following information: information_dictionary. \
-                Based on the information required before building the product type. \
-                Find out what kind of information is missing. \
-                Construct a question to ask user for the missing information."
+CLARIFICATION = "The user has provided more information. I already have a product info dictionary.\
+                I need to check whether the user's answer fille up the product info dictionary. "
+
+
+# Get the directory of the current script
+current_dir = os.path.dirname(os.path.abspath(__file__))
 
 # Instantiate a Portia instance. Load it with the default config and with the example tools.
-google_config = Config.from_default(
+openai_config = Config.from_default(
             storage_class=StorageClass.CLOUD,
-            llm_provider=LLMProvider.GOOGLE_GENERATIVE_AI,
-            llm_model_name=LLMModel.GEMINI_2_0_FLASH,
-            google_api_key=GOOGLE_API_KEY,
+            llm_provider=LLMProvider.OPENAI,
+            llm_model_name=LLMModel.GPT_4_O_MINI,
         )
+
+
+
+
         # Instantiate a Portia instance. Load it with the config and with the example tools.
 portia = Portia(
-                config=google_config,
-                tools=PortiaToolRegistry(google_config) + open_source_tool_registry,
-                    )
+                        config=openai_config,
+                        tools=[open_source_tool_registry.get_tool("llm_tool"),
+                               open_source_tool_registry.get_tool("search_tool"),
+                               custom_tool_registry.get_tool("llm_structure_tool"),
+                              ],
+                         )
+        # Instantiate a Portia instance. Load it with the config and with the example tools.
+
 
 with execution_context(end_user_id="demo"):
-    plan = portia.plan(INITIATION)
+    plan = portia.plan(LOGO_SEARCH)
 
 # Get the plan data as a Python dictionary
 plan_data = plan.model_dump()
 # Save to a file
-with open('humming-bird-backend/app/services/initiation_plan.json', 'w', encoding='utf-8') as f:
+with open(os.path.join(current_dir, 'logo_search_plan.json'), 'w', encoding='utf-8') as f:
     json.dump(plan_data, f, indent=2)

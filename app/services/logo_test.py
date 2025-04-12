@@ -1,6 +1,7 @@
 import re
 from typing import Dict, Any
 import logging
+from google import genai
 from dotenv import load_dotenv
 import os
 
@@ -61,11 +62,11 @@ class PortiaAIService:
                                custom_tool_registry.get_tool("llm_list_tool"),
                               ],
                          )
-        self.logger.info("Load all curstom tools")
+        self.logger.info("Load all custom tools")
         # initiation_plan = json.load(open('humming-bird-backend/app/services/initiation_plan.json'))
-        with open(os.path.join(current_dir, 'generation_plan.json'), 'r') as f:
+        with open(os.path.join(current_dir, 'logo_test.json'), 'r') as f:
             plan_json = f.read()
-            plan_json = re.sub("PRODUCT_INFO", text_data, plan_json)
+            plan_json = re.sub("WEBSITE_URL", text_data, plan_json)
 
             initiation_plan = Plan.model_validate_json(plan_json)
             initiation_plan.id = PlanUUID()
@@ -74,13 +75,9 @@ class PortiaAIService:
         with execution_context(end_user_id="demo"):
             self.portia.storage.save_plan(initiation_plan)
             self.plan_run = self.portia.run_plan(initiation_plan)
-        self.logger.info("Plan finished")
 
-        output = []
-        for id in range(5):
-            output.append(self.plan_run.outputs.step_outputs[f"$structured_output_{id+1}"].value["products"][0])
-            output[-1]["id"] = id + 1
-        return output
+        self.logger.info("Plan finished")
+        return
     
     def get_products(self, id: int):
         output = self.plan_run.outputs.step_outputs[f"$structured_output_{id+1}"].value
@@ -98,9 +95,9 @@ class PortiaAIService:
 
 if __name__ == "__main__":
     import asyncio
-    msg = "I want to build a website to sell cars"
+    msg = "www.chatgpt.com"
     service = PortiaAIService() 
     result = asyncio.run(service.generate_tools(msg))
-    print("\n\n")
-    print("\n\n")
-    print(result)
+   
+
+   

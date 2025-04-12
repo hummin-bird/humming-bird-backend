@@ -1,0 +1,25 @@
+{
+    "id": "plan-1694229f-5b28-41a6-a791-824bdfed2526",
+    "plan_context": {
+      "query": "Search for the official logo image URL of the product available on the website: WEBSITE_URL. Prefer high-quality, transparent PNG or SVG formats. Return a direct link to the logo hosted on the official domain if possible. ",
+      "tool_ids": [
+        "llm_structure_tool",
+        "llm_tool",
+        "search_tool"
+      ]
+    },
+    "steps": [
+      {
+        "task": "Search for the official logo image URL of the product available on the website: WEBSITE_URL. Prefer high-quality, transparent PNG or SVG formats. Return a direct link to the logo hosted on the official domain if possible. ",
+        "inputs": [
+                    {
+                      "name": "$website_url",
+                      "description": "website url."
+                    }
+                  ],
+        "tool_id": "search_tool",
+        "output": "$url",
+        "condition": null
+      }
+    ]
+}

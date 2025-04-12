@@ -8,15 +8,15 @@ from portia.config import LLM_TOOL_MODEL_KEY
 from portia.model import Message
 from portia.tool import Tool, ToolRunContext
 
-from typing import List
-
+from typing import List, Union, Type
 import os
 import httpx
 from portia.errors import ToolHardError, ToolSoftError
+import httpx
 
 
 class StringListSchema(BaseModel):
-    items: List[str] = Field(..., min_items=3, max_items=3)
+    items: List[str] = Field(..., min_items=5, max_items=5)
 
 
 class ProductSchema(BaseModel):
@@ -36,6 +36,9 @@ class LLMToolSchema(BaseModel):
         ...,
         description="The task to be completed by the LLM tool.",
     )
+
+class UrlOnlySchema(BaseModel):
+    url: AnyUrl
 
 class LLMstructureTool(Tool[str]):
     """General purpose LLM tool. Customizable to user requirements. Won't call other tools."""
@@ -150,3 +153,57 @@ class LLMlistTool(Tool[str]):
         ]
         response = model.get_structured_response(messages, schema=self.list_schema)
         return response.model_dump(mode="json")
+
+
+
+MAX_RESULTS = 3
+
+
+class SearchToolSchema(BaseModel):
+    """Input for SearchTool."""
+
+    search_query: str = Field(
+        ...,
+        description=(
+            "The query to search for. For example, 'what is the capital of France?' or "
+            "'who won the US election in 2020?'"
+        ),
+    )
+
+
+class LogoSearchTool(Tool[str]):
+    """Searches the internet to find answers to the search query provided.."""
+
+    id: str = "logo_search_tool"
+    name: str = "Logo Search Tool"
+    description: str = (
+    "Searches the internet (using Tavily) to find the official logo of the website provided in the search query. "
+    "Returns only the URL of the logo image (preferably in PNG or SVG format). "
+    "The search tool can access general website information but will only return a logo URL and no other data."
+    )
+    args_schema: type[BaseModel] = SearchToolSchema
+    output_schema: tuple[Union[str, Type[BaseModel]], str]
+    should_summarize: bool = True
+
+    def run(self, _: ToolRunContext, search_query: str) -> str:
+        """Run the Search Tool."""
+        api_key = os.getenv("TAVILY_API_KEY")
+        if not api_key or api_key == "":
+            raise ToolHardError("TAVILY_API_KEY is required to use search")
+
+        url = "https://api.tavily.com/search"
+
+        payload = {
+            "query": search_query,
+            "include_answer": True,
+            "api_key": api_key,
+        }
+        headers = {"Content-Type": "application/json"}
+
+        response = httpx.post(url, headers=headers, json=payload)
+        response.raise_for_status()
+        json_response = response.json()
+        if "answer" in json_response:
+            results = json_response["results"]
+            return results[:MAX_RESULTS]
+        raise ToolSoftError(f"Failed to get answer to search: {json_response}")
