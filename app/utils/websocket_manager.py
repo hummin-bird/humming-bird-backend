@@ -12,7 +12,6 @@ class WebSocketManager:
         self.log_handlers: Dict[str, logging.Handler] = {}
 
     async def connect(self, websocket: WebSocket, session_id: str):
-        await websocket.accept()
         if session_id not in self.active_connections:
             self.active_connections[session_id] = set()
         self.active_connections[session_id].add(websocket)

@@ -32,21 +32,28 @@ app.include_router(router, prefix="/api/v1")
 async def websocket_endpoint(websocket: WebSocket, session_id: str):
     from app.utils.websocket_manager import websocket_manager
     
-    # Accept the WebSocket connection
-    await websocket.accept()
-    
-    # Add CORS headers for WebSocket
-    await websocket.send_json({
-        "type": "connection_established",
-        "message": "WebSocket connection established"
-    })
-    
-    await websocket_manager.connect(websocket, session_id)
     try:
+        # Accept the WebSocket connection
+        await websocket.accept()
+        
+        # Send connection established message
+        await websocket.send_json({
+            "type": "connection_established",
+            "message": "WebSocket connection established"
+        })
+        
+        # Connect to the WebSocket manager
+        await websocket_manager.connect(websocket, session_id)
+        
+        # Keep the connection alive
         while True:
-            # Keep the connection alive
-            data = await websocket.receive_text()
-            # You can handle any client messages here if needed
+            try:
+                # Wait for any message from the client
+                data = await websocket.receive_text()
+                # You can handle client messages here if needed
+            except Exception as e:
+                logger.error(f"Error receiving message for session {session_id}: {str(e)}")
+                break
     except Exception as e:
         logger.error(f"WebSocket error for session {session_id}: {str(e)}")
     finally:
