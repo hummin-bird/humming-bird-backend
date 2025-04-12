@@ -1,4 +1,4 @@
-from fastapi import FastAPI, WebSocket
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from app.routes.route import router
 from dotenv import load_dotenv
@@ -58,6 +58,9 @@ async def websocket_endpoint(websocket: WebSocket, session_id: str):
                 # You can handle other client messages here if needed
                 logger.debug(f"Received message from client: {data}")
                 
+            except WebSocketDisconnect:
+                logger.info(f"WebSocket disconnected for session {session_id}")
+                break
             except Exception as e:
                 logger.error(f"Error receiving message for session {session_id}: {str(e)}")
                 break

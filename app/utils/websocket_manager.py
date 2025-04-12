@@ -1,7 +1,7 @@
 from typing import Set, Dict
 import json
 import logging
-from fastapi import WebSocket
+from fastapi import WebSocket, WebSocketDisconnect
 from datetime import datetime
 import asyncio
 import time
@@ -72,6 +72,9 @@ class WebSocketManager:
                     except asyncio.TimeoutError:
                         logger.warning(f"Ping timeout for session {session_id}")
                         break
+                except WebSocketDisconnect:
+                    logger.info(f"WebSocket disconnected during ping for session {session_id}")
+                    break
                 except Exception as e:
                     logger.error(f"Error sending ping to session {session_id}: {str(e)}")
                     break
@@ -111,6 +114,9 @@ class WebSocketManager:
             for connection in self.active_connections[session_id]:
                 try:
                     await connection.send_json(log_data)
+                except WebSocketDisconnect:
+                    logger.info(f"WebSocket disconnected during broadcast for session {session_id}")
+                    self.disconnect(connection, session_id)
                 except Exception as e:
                     logger.error(f"Error sending log to WebSocket: {str(e)}")
                     self.disconnect(connection, session_id)
