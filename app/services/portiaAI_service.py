@@ -3,8 +3,11 @@ from typing import Dict, Any
 import logging
 from dotenv import load_dotenv
 import os
+from app.logging_config import setup_logger
 
-logger = logging.getLogger(__name__)
+# Get the logger for this module
+logger = setup_logger(__name__, 'portia_ai.log')
+
 # Get the directory of the current script
 current_dir = os.path.dirname(os.path.abspath(__file__))
 
@@ -38,20 +41,21 @@ from portia.plan import PlanUUID
 
 class PortiaAIService:
     def __init__(self):
-        self.logger = logging.getLogger(__name__)
+        logger.info("Initialize Portia AI Service")
 
     async def generate_tools(self, text_data: Dict[str, Any]) -> Dict[str, Any]:
         """
         Call the Gemini API to generate a response to the user's query, Check if it searches the internet
         
         """
+        logger.info("Start Portia AI Service")
         # Create a default Portia config with LLM provider set to Google GenAI and model set to Gemini 2.0 Flash
         openai_config = Config.from_default(
             storage_class=StorageClass.CLOUD,
             llm_provider=LLMProvider.OPENAI,
             llm_model_name=LLMModel.GPT_4_O_MINI,
         )
-        self.logger.info("Setup LLM configuration")
+        logger.info("Setup LLM configuration")
         # Instantiate a Portia instance. Load it with the config and with the example tools.
         self.portia = Portia(
                         config=openai_config,
@@ -61,7 +65,7 @@ class PortiaAIService:
                                custom_tool_registry.get_tool("llm_list_tool"),
                               ],
                          )
-        self.logger.info("Load all curstom tools")
+        logger.info("Load all curstom tools")
         # initiation_plan = json.load(open('humming-bird-backend/app/services/initiation_plan.json'))
         with open(os.path.join(current_dir, 'generation_plan.json'), 'r') as f:
             plan_json = f.read()
@@ -70,17 +74,16 @@ class PortiaAIService:
             initiation_plan = Plan.model_validate_json(plan_json)
             initiation_plan.id = PlanUUID()
 
-        self.logger.info("load saved plan")
+        logger.info("load saved plan")
         with execution_context(end_user_id="demo"):
             self.portia.storage.save_plan(initiation_plan)
             self.plan_run = self.portia.run_plan(initiation_plan)
-        self.logger.info("Plan finished")
+        logger.info("Plan finished")
 
-        output = []
-        for id in range(5):
-            output.append(self.plan_run.outputs.step_outputs[f"$structured_output_{id+1}"].value["products"][0])
-            output[-1]["id"] = id + 1
-        return output
+        output = self.plan_run.outputs.step_outputs[f"$structured_output"].value
+        logger.info("Products Achieved")
+        return output["products"]
+
     
     def get_products(self, id: int):
         output = self.plan_run.outputs.step_outputs[f"$structured_output_{id+1}"].value
