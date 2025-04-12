@@ -3,6 +3,7 @@ import os
 import sys
 import json
 import asyncio
+import logging
 from typing import Dict, Any, List
 from pathlib import Path
 from dotenv import load_dotenv
@@ -24,6 +25,15 @@ logger = setup_logger(__name__, "portia_ai.log")
 
 # Get the directory of the current script
 current_dir = os.path.dirname(os.path.abspath(__file__))
+
+# Create a custom handler for logs
+class LogHandler(logging.Handler):
+    def __init__(self, log_queue):
+        super().__init__()
+        self.log_queue = log_queue
+        
+    def emit(self, record):
+        asyncio.create_task(self.log_queue.put(record))
 
 def clean_text(text: str) -> str:
     """
@@ -124,14 +134,9 @@ class PortiaAIService:
             )
             logger.info(f"Setup LLM configuration for session {self.session_id}")
             
-            # Create a custom handler for logs
-            class LogHandler(logging.Handler):
-                def emit(self, record):
-                    asyncio.create_task(log_queue.put(record))
-            
             # Configure the root logger to capture all logs
             root_logger = logging.getLogger()
-            log_handler = LogHandler()
+            log_handler = LogHandler(log_queue)
             root_logger.addHandler(log_handler)
             
             # Instantiate a Portia instance
