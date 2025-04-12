@@ -2,8 +2,8 @@ import logging
 from typing import Optional, List, Dict, Any
 import random
 import asyncio
-import json
 from datetime import datetime
+from app.services.portiai_service import PortiaAIService
 
 logger = logging.getLogger(__name__)
 
