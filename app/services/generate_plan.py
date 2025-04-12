@@ -7,12 +7,12 @@ from portia import (
     LLMProvider,
     open_source_tool_registry,
     execution_context,
-    LLMModel
+    LLMModel,
 )
 import os
 import json
 
-load_dotenv() 
+load_dotenv()
 GOOGLE_API_KEY = os.getenv("GEMINI_API_KEY")
 INITIATION = "The user wants to build a product,\
         step 1: Find out which type of product does the user want to \
@@ -29,23 +29,25 @@ INITIATION = "The user wants to build a product,\
 #         step 8: For each step, search the internet \
 #         and give me 5 best tools i can use."
 
-CLARIFICATION = "The user has provided the following information: information_dictionary. \
+CLARIFICATION = (
+    "The user has provided the following information: information_dictionary. \
                 Based on the information required before building the product type. \
                 Find out what kind of information is missing. \
                 Construct a question to ask user for the missing information."
+)
 
 # Instantiate a Portia instance. Load it with the default config and with the example tools.
 google_config = Config.from_default(
-            storage_class=StorageClass.CLOUD,
-            llm_provider=LLMProvider.GOOGLE_GENERATIVE_AI,
-            llm_model_name=LLMModel.GEMINI_2_0_FLASH,
-            google_api_key=GOOGLE_API_KEY,
-        )
-        # Instantiate a Portia instance. Load it with the config and with the example tools.
+    storage_class=StorageClass.CLOUD,
+    llm_provider=LLMProvider.GOOGLE_GENERATIVE_AI,
+    llm_model_name=LLMModel.GEMINI_2_0_FLASH,
+    google_api_key=GOOGLE_API_KEY,
+)
+# Instantiate a Portia instance. Load it with the config and with the example tools.
 portia = Portia(
-                config=google_config,
-                tools=PortiaToolRegistry(google_config) + open_source_tool_registry,
-                    )
+    config=google_config,
+    tools=PortiaToolRegistry(google_config) + open_source_tool_registry,
+)
 
 with execution_context(end_user_id="demo"):
     plan = portia.plan(INITIATION)
@@ -53,5 +55,7 @@ with execution_context(end_user_id="demo"):
 # Get the plan data as a Python dictionary
 plan_data = plan.model_dump()
 # Save to a file
-with open('humming-bird-backend/app/services/initiation_plan.json', 'w', encoding='utf-8') as f:
+with open(
+    "humming-bird-backend/app/services/initiation_plan.json", "w", encoding="utf-8"
+) as f:
     json.dump(plan_data, f, indent=2)

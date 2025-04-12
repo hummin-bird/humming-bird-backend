@@ -18,7 +18,7 @@ QUESTION_CATEGORIES = {
     ],
     "product_purpose": [
         "In one sentence, what problem is your product trying to solve for people?",
-        "What's the biggest impact you'd love your product to have on its users' lives?"
+        "What's the biggest impact you'd love your product to have on its users' lives?",
     ],
     "features": [
         "If you had a magic wand, what's the one must-have feature your product absolutely needs?",
@@ -91,34 +91,58 @@ async def call_deepresearch(user_input: str, session_id: str) -> Optional[str]:
 async def fetch_product_suggestions(session_id: str) -> List[Dict[str, Any]]:
     try:
         logger.info(f"Fetching product suggestions for session {session_id}")
-        
+
         # Get the conversation history for this session
         if session_id not in conversations:
             logger.warning(f"No conversation history found for session {session_id}")
             return []
-            
+
         # Create a text data string from the conversation history
-        text_data = "\n".join([
-            f"User: {entry['user_input']}\nAssistant: {entry['clarifying_question']}"
-            for entry in conversations[session_id]
-        ])
-        
+        text_data = "\n".join(
+            [
+                f"User: {entry['user_input']}\nAssistant: {entry['clarifying_question']}"
+                for entry in conversations[session_id]
+            ]
+        )
+
         # Initialize PortiaAI service
         portia_service = PortiaAIService()
-        
-        # Generate tools and get products
-        await portia_service.generate_tools(text_data)
-        
+
         try:
-            products = portia_service.get_products(0)
+            # Generate tools and get products
+            await portia_service.generate_tools(text_data)
+            logger.info(f"Successfully generated tools for session {session_id}")
+
+            # Get products for each step (assuming 3 steps as shown in the example)
+            products = []
+            for step in range(3):
+                try:
+                    step_products = portia_service.get_products(step)
+                    products.extend(step_products)
+                    logger.info(
+                        f"Retrieved {len(step_products)} products for step {step} in session {session_id}"
+                    )
+                except Exception as e:
+                    logger.error(
+                        f"Error getting products for step {step} in session {session_id}: {str(e)}"
+                    )
+                    continue
+
+            logger.info(
+                f"Successfully retrieved {len(products)} total products for session {session_id}"
+            )
             return products
+
         except Exception as e:
-            logger.error(f"Error getting product: {str(e)}")
-                
-        return None
-        
+            logger.error(
+                f"Error in PortiaAI service for session {session_id}: {str(e)}"
+            )
+            raise
+
     except Exception as e:
-        logger.error(f"Error fetching product suggestions: {str(e)}")
+        logger.error(
+            f"Error fetching product suggestions for session {session_id}: {str(e)}"
+        )
         raise
 
 
