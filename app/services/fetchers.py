@@ -2,7 +2,6 @@ import logging
 from typing import Optional, List, Dict, Any
 import random
 import asyncio
-from app.services.portiaAI_service import PortiaAIService
 
 logger = logging.getLogger(__name__)
 
@@ -90,6 +89,7 @@ async def call_deepresearch(user_input: str, session_id: str) -> Optional[str]:
 
 async def fetch_product_suggestions(session_id: str) -> List[Dict[str, Any]]:
     try:
+        # Replace with actual logic
         logger.info(f"Fetching product suggestions for session {session_id}")
 
         # Get the conversation history for this session
