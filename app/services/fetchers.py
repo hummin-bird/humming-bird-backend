@@ -2,6 +2,7 @@ import logging
 from typing import Optional, List, Dict, Any
 import random
 import asyncio
+from app.services.portiaAI_service import PortiaAIService
 
 logger = logging.getLogger(__name__)
 
@@ -89,17 +90,33 @@ async def call_deepresearch(user_input: str, session_id: str) -> Optional[str]:
 
 async def fetch_product_suggestions(session_id: str) -> List[Dict[str, Any]]:
     try:
-        # Replace with actual logic
         logger.info(f"Fetching product suggestions for session {session_id}")
-        return [
-            {
-                "id": "1",
-                "name": "Sample Product",
-                "description": "A great product",
-                "website_url": "https://example.com",
-                "image_url": "https://example.com/image.jpg",
-            }
-        ]
+        
+        # Get the conversation history for this session
+        if session_id not in conversations:
+            logger.warning(f"No conversation history found for session {session_id}")
+            return []
+            
+        # Create a text data string from the conversation history
+        text_data = "\n".join([
+            f"User: {entry['user_input']}\nAssistant: {entry['clarifying_question']}"
+            for entry in conversations[session_id]
+        ])
+        
+        # Initialize PortiaAI service
+        portia_service = PortiaAIService()
+        
+        # Generate tools and get products
+        await portia_service.generate_tools(text_data)
+        
+        try:
+            products = portia_service.get_products(0)
+            return products
+        except Exception as e:
+            logger.error(f"Error getting product: {str(e)}")
+                
+        return None
+        
     except Exception as e:
         logger.error(f"Error fetching product suggestions: {str(e)}")
         raise
