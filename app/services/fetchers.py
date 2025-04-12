@@ -17,8 +17,7 @@ QUESTION_CATEGORIES = {
     ],
     "product_purpose": [
         "In one sentence, what problem is your product trying to solve for people?",
-        "What's the biggest impact you'd love your product to have on its users' lives?",
-        "Is this product meant to inform, entertain, simplify, connect, or something else entirely?",
+        "What's the biggest impact you'd love your product to have on its users' lives?"
     ],
     "features": [
         "If you had a magic wand, what's the one must-have feature your product absolutely needs?",
@@ -27,7 +26,6 @@ QUESTION_CATEGORIES = {
     ],
     "budget": [
         "Do you have a set budget in mind for building this, or are you exploring what's possible first?",
-        "What kind of resources or team members do you have on hand — designers, developers, marketers?",
         "Would you prefer to build this lean and scrappy to start, or invest in a polished, full-featured version right away?",
     ],
     "market_research": [
@@ -56,11 +54,11 @@ async def call_deepresearch(user_input: str, session_id: str) -> Optional[str]:
                     category: [] for category in QUESTION_CATEGORIES.keys()
                 }
 
-            # Get available categories (those that haven't had all questions asked)
+            # Get available categories (those that haven't had any questions asked)
             available_categories = [
                 category
-                for category, questions in QUESTION_CATEGORIES.items()
-                if len(session_questions[session_id][category]) < len(questions)
+                for category in QUESTION_CATEGORIES.keys()
+                if not session_questions[session_id][category]
             ]
 
             if not available_categories:
@@ -70,13 +68,8 @@ async def call_deepresearch(user_input: str, session_id: str) -> Optional[str]:
             # Randomly select a category
             selected_category = random.choice(available_categories)
 
-            # Get available questions for this category
-            asked_questions = session_questions[session_id][selected_category]
-            available_questions = [
-                q
-                for q in QUESTION_CATEGORIES[selected_category]
-                if q not in asked_questions
-            ]
+            # Get all questions for this category
+            available_questions = QUESTION_CATEGORIES[selected_category]
 
             # Select a random question from available ones
             selected_question = random.choice(available_questions)
