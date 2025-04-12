@@ -4,6 +4,7 @@ import logging
 from fastapi import WebSocket
 from datetime import datetime
 import asyncio
+import time
 
 logger = logging.getLogger(__name__)
 
@@ -13,22 +14,46 @@ class WebSocketManager:
         self.log_handlers: Dict[str, logging.Handler] = {}
         self.ping_interval = 30  # seconds
         self.ping_timeout = 10  # seconds
+        self.connection_timeout = 300  # 5 minutes
 
     async def connect(self, websocket: WebSocket, session_id: str):
-        if session_id not in self.active_connections:
-            self.active_connections[session_id] = set()
-        self.active_connections[session_id].add(websocket)
-        
-        # Create a custom log handler for this session if it doesn't exist
-        if session_id not in self.log_handlers:
-            handler = WebSocketLogHandler(self, session_id)
-            self.log_handlers[session_id] = handler
-            logging.getLogger().addHandler(handler)
-        
-        logger.info(f"WebSocket connected for session {session_id}")
-        
-        # Start ping task
-        asyncio.create_task(self._ping_task(websocket, session_id))
+        try:
+            if session_id not in self.active_connections:
+                self.active_connections[session_id] = set()
+            self.active_connections[session_id].add(websocket)
+            
+            # Create a custom log handler for this session if it doesn't exist
+            if session_id not in self.log_handlers:
+                handler = WebSocketLogHandler(self, session_id)
+                self.log_handlers[session_id] = handler
+                logging.getLogger().addHandler(handler)
+            
+            logger.info(f"WebSocket connected for session {session_id}")
+            
+            # Start ping task
+            asyncio.create_task(self._ping_task(websocket, session_id))
+            
+            # Start connection timeout task
+            asyncio.create_task(self._connection_timeout_task(websocket, session_id))
+            
+        except Exception as e:
+            logger.error(f"Error connecting WebSocket for session {session_id}: {str(e)}")
+            raise
+
+    async def _connection_timeout_task(self, websocket: WebSocket, session_id: str):
+        try:
+            start_time = time.time()
+            while True:
+                await asyncio.sleep(1)
+                if time.time() - start_time > self.connection_timeout:
+                    logger.warning(f"Connection timeout for session {session_id}")
+                    break
+                if websocket not in self.active_connections.get(session_id, set()):
+                    break
+        except Exception as e:
+            logger.error(f"Error in connection timeout task for session {session_id}: {str(e)}")
+        finally:
+            self.disconnect(websocket, session_id)
 
     async def _ping_task(self, websocket: WebSocket, session_id: str):
         try:
@@ -54,15 +79,18 @@ class WebSocketManager:
             self.disconnect(websocket, session_id)
 
     def disconnect(self, websocket: WebSocket, session_id: str):
-        if session_id in self.active_connections:
-            self.active_connections[session_id].remove(websocket)
-            if not self.active_connections[session_id]:
-                del self.active_connections[session_id]
-                # Remove the log handler if no more connections for this session
-                if session_id in self.log_handlers:
-                    logging.getLogger().removeHandler(self.log_handlers[session_id])
-                    del self.log_handlers[session_id]
-        logger.info(f"WebSocket disconnected for session {session_id}")
+        try:
+            if session_id in self.active_connections:
+                self.active_connections[session_id].remove(websocket)
+                if not self.active_connections[session_id]:
+                    del self.active_connections[session_id]
+                    # Remove the log handler if no more connections for this session
+                    if session_id in self.log_handlers:
+                        logging.getLogger().removeHandler(self.log_handlers[session_id])
+                        del self.log_handlers[session_id]
+            logger.info(f"WebSocket disconnected for session {session_id}")
+        except Exception as e:
+            logger.error(f"Error disconnecting WebSocket for session {session_id}: {str(e)}")
 
     async def broadcast_log(self, session_id: str, message: str, level: str):
         if session_id in self.active_connections:

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Request, HTTPException, WebSocket
+from fastapi import APIRouter, Request, HTTPException
 from pydantic import ValidationError
 import logging
 from app.models.elevenlabs import ElevenLabsRequest
@@ -124,17 +124,3 @@ async def get_products(session_id: str, request: Request):
     except Exception as e:
         logger.error(f"Unexpected error in get_products endpoint: {str(e)}")
         raise HTTPException(status_code=500, detail="Internal server error")
-
-
-@router.websocket("/ws/logs/{session_id}")
-async def websocket_logs(websocket: WebSocket, session_id: str):
-    await websocket_manager.connect(websocket, session_id)
-    try:
-        while True:
-            # Keep the connection alive
-            data = await websocket.receive_text()
-            # You can handle any client messages here if needed
-    except Exception as e:
-        logger.error(f"WebSocket error for session {session_id}: {str(e)}")
-    finally:
-        websocket_manager.disconnect(websocket, session_id)
