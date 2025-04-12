@@ -26,8 +26,10 @@ class ProductSchema(BaseModel):
     image_url: AnyUrl
     website_url: AnyUrl
 
+
 class ProductListSchema(BaseModel):
     products: List[ProductSchema]
+
 
 class LLMToolSchema(BaseModel):
     """Input for LLM Tool."""
@@ -94,12 +96,15 @@ class LLMstructureTool(Tool[str]):
             Message(role="user", content=self.prompt),
             Message(role="user", content=content),
         ]
-        response = model.get_structured_response(messages, schema=self.product_list_schema)
+        response = model.get_structured_response(
+            messages, schema=self.product_list_schema
+        )
         return response.model_dump(mode="json")
 
 
 class ListSchema(BaseModel):
     products: List
+
 
 class LLMlistTool(Tool[str]):
     """General purpose LLM tool. Customizable to user requirements. Won't call other tools."""
