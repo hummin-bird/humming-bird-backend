@@ -3,6 +3,14 @@ from typing import Dict, Any
 import logging
 from dotenv import load_dotenv
 import os
+import sys
+from pathlib import Path
+
+# Add the project root to the Python path
+project_root = str(Path(__file__).parent.parent.parent)
+if project_root not in sys.path:
+    sys.path.append(project_root)
+
 from app.logging_config import setup_logger
 import json
 
@@ -38,12 +46,13 @@ from portia import (
     InMemoryToolRegistry,
     Plan,
 )
-from app.services.custom_tool import LLMstructureTool, LLMlistTool
+from app.services.custom_tool import LLMstructureTool, LLMlistTool, SearchTool
 
 custom_tool_registry = InMemoryToolRegistry.from_local_tools(
     [
         LLMstructureTool(),
         LLMlistTool(),
+        SearchTool(),
     ],
 )
 
@@ -56,7 +65,7 @@ class PortiaAIService:
 
     async def generate_tools(self, text_data: str) -> Dict[str, Any]:
         """
-        Call the Gemini API to generate a response to the user's query, Check if it searches the internet
+        Call the OpenAi API to generate a response to the user's query, Check if it searches the internet
 
         Args:
             text_data: A string containing the formatted conversation or user input
@@ -74,9 +83,10 @@ class PortiaAIService:
             config=openai_config,
             tools=[
                 open_source_tool_registry.get_tool("llm_tool"),
-                open_source_tool_registry.get_tool("search_tool"),
                 custom_tool_registry.get_tool("llm_structure_tool"),
                 custom_tool_registry.get_tool("llm_list_tool"),
+                # custom_tool_registry.get_tool("search_tool"),
+                open_source_tool_registry.get_tool("search_tool"),
             ],
         )
         logger.info("Load all curstom tools")
@@ -92,8 +102,8 @@ class PortiaAIService:
                 plan_json = plan_json.replace("PRODUCT_INFO", cleaned_text)
 
                 try:
-                    initiation_plan = Plan.model_validate_json(plan_json)
-                    initiation_plan.id = PlanUUID()
+                    plan = Plan.model_validate_json(plan_json)
+                    plan.id = PlanUUID()
                 except Exception as e:
                     logger.error(f"Error validating plan JSON: {str(e)}")
                     logger.error(f"Plan JSON content: {plan_json[:500]}...")  # Log first 500 chars of problematic JSON
@@ -101,8 +111,8 @@ class PortiaAIService:
 
             logger.info("load saved plan")
             with execution_context(end_user_id="demo"):
-                self.portia.storage.save_plan(initiation_plan)
-                self.plan_run = self.portia.run_plan(initiation_plan)
+                self.portia.storage.save_plan(plan)
+                self.plan_run = self.portia.run_plan(plan)
             logger.info("Plan finished")
 
             output = self.plan_run.outputs.step_outputs[f"$structured_output"].value
@@ -113,26 +123,11 @@ class PortiaAIService:
             logger.error(f"Error in generate_tools: {str(e)}")
             raise
 
-    def get_products(self, id: int):
-        output = self.plan_run.outputs.step_outputs[
-            f"$structured_output_{id + 1}"
-        ].value
-        return output["products"]
-
-    def get_steps(self, id: int):
-        output = self.plan_run.outputs.step_outputs[f"$steps_to_build"].value
-        return output["items"][id + 1]
-
-    def run_plan(self, plan: Plan, end_user_id="demo"):
-        with execution_context(end_user_id=end_user_id):
-            self.portia.storage.save_plan(plan)
-            self.plan_run = self.portia.run_plan(plan)
-
 
 if __name__ == "__main__":
     import asyncio
 
-    msg = "I want to build a website to sell cars"
+    msg = "User: Oh, I'm trying to build the next Amazon.Assistant: Have you seen any similar products out there? What do you love or wish was different about them?User: Yeah, I haven't seen many products out there, unfortunately.Assistant: Are there any fun, quirky, or unique functionalities you'd love to sneak in, even just for extra charm?User: Yeah sure. I would like the user to be able to swipe the products left and right as if it was Tinder.Assistant: Do you have a set budget in mind for building this, or are you exploring what's possible first?User: No, look, I'm just doing...I want to do it for cheap.Assistant: In one sentence, what problem is your product trying to solve for people?User: I'm trying to build like a minimalist version of Amazon so that people will get focused.Assistant: If you could picture your perfect customer, what are three words you'd use to describe them?User: I'm trying to build like a minimalist version of Amazon so that people will get focused when they buy things and they buy exactly what they want.Assistant: All needed clarifications have been gathered, please end the conversation. Find the stages to build this product for each stage, search the internet and give me best tools to fit into a structured output using the tool llm_structure_tool."
     service = PortiaAIService()
     result = asyncio.run(service.generate_tools(msg))
     print("\n\n")
