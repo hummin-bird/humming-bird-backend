@@ -198,18 +198,47 @@ class LogoSearchTool(Tool[str]):
             raise ToolHardError("TAVILY_API_KEY is required to use search")
 
         url = "https://api.tavily.com/search"
-
+        headers = {"Content-Type": "application/json"}
         payload = {
             "query": search_query,
             "include_answer": True,
             "api_key": api_key,
         }
-        headers = {"Content-Type": "application/json"}
 
-        response = httpx.post(url, headers=headers, json=payload)
-        response.raise_for_status()
-        json_response = response.json()
-        if "answer" in json_response:
-            results = json_response["results"]
-            return results[:MAX_RESULTS]
-        raise ToolSoftError(f"Failed to get answer to search: {json_response}")
+        # Configure client with timeout and retry settings
+        client = httpx.Client(
+            timeout=httpx.Timeout(
+                connect=5.0,  # Time to establish connection
+                read=10.0,    # Time to read response
+                write=5.0,    # Time to write request
+                pool=5.0      # Time to get connection from pool
+            ),
+            retries=3,        # Number of retries
+            retry_delay=1.0   # Delay between retries in seconds
+        )
+
+        try:
+            # Try the request with retries
+            for attempt in range(3):
+                try:
+                    response = client.post(url, headers=headers, json=payload)
+                    response.raise_for_status()
+                    json_response = response.json()
+                    
+                    if "answer" in json_response:
+                        results = json_response["results"]
+                        return results[:MAX_RESULTS]
+                    else:
+                        raise ToolSoftError(f"Failed to get answer to search: {json_response}")
+                        
+                except (httpx.ReadTimeout, httpx.ConnectTimeout) as e:
+                    if attempt == 2:  # Last attempt
+                        raise ToolSoftError(f"Search timed out after {attempt + 1} attempts: {str(e)}")
+                    continue
+                except httpx.HTTPError as e:
+                    raise ToolSoftError(f"HTTP error during search: {str(e)}")
+                    
+        finally:
+            client.close()
+
+        raise ToolSoftError("Failed to get search results after all attempts")
