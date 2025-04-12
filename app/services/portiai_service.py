@@ -4,6 +4,7 @@ import logging
 from dotenv import load_dotenv
 import os
 from app.logging_config import setup_logger
+import json
 
 # Get the logger for this module
 logger = setup_logger(__name__, "portia_ai.log")
@@ -43,10 +44,12 @@ class PortiaAIService:
     def __init__(self):
         logger.info("Initialize Portia AI Service")
 
-    async def generate_tools(self, text_data: Dict[str, Any]) -> Dict[str, Any]:
+    async def generate_tools(self, text_data: str) -> Dict[str, Any]:
         """
         Call the Gemini API to generate a response to the user's query, Check if it searches the internet
 
+        Args:
+            text_data: A string containing the formatted conversation or user input
         """
         logger.info("Start Portia AI Service")
         # Create a default Portia config with LLM provider set to Google GenAI and model set to Gemini 2.0 Flash
@@ -70,10 +73,16 @@ class PortiaAIService:
         # initiation_plan = json.load(open('humming-bird-backend/app/services/initiation_plan.json'))
         with open(os.path.join(current_dir, "generation_plan.json"), "r") as f:
             plan_json = f.read()
-            plan_json = re.sub("PRODUCT_INFO", text_data, plan_json)
+            
+            # Replace PRODUCT_INFO with the text data
+            plan_json = plan_json.replace("PRODUCT_INFO", text_data)
 
-            initiation_plan = Plan.model_validate_json(plan_json)
-            initiation_plan.id = PlanUUID()
+            try:
+                initiation_plan = Plan.model_validate_json(plan_json)
+                initiation_plan.id = PlanUUID()
+            except Exception as e:
+                logger.error(f"Error validating plan JSON: {str(e)}")
+                raise
 
         logger.info("load saved plan")
         with execution_context(end_user_id="demo"):

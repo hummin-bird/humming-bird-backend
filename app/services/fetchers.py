@@ -111,15 +111,16 @@ async def fetch_product_suggestions(session_id: str) -> List[Dict[str, Any]]:
 
         # Create a text data string from the conversation history
         try:
-            text_data = "\n".join(
-                [
-                    f"User: {entry['user_input']}\nAssistant: {entry['clarifying_question']}"
-                    for entry in conversations[session_id]
-                    if entry["user_input"] and entry["clarifying_question"]
-                ]
-            )
+            conversation_entries = [
+                {
+                    "user_input": entry['user_input'],
+                    "assistant_response": entry['clarifying_question']
+                }
+                for entry in conversations[session_id]
+                if entry["user_input"] and entry["clarifying_question"]
+            ]
 
-            if not text_data:
+            if not conversation_entries:
                 logger.warning(f"Empty conversation history for session {session_id}")
                 return [
                     {
@@ -131,6 +132,12 @@ async def fetch_product_suggestions(session_id: str) -> List[Dict[str, Any]]:
                     }
                 ]
 
+            # Convert conversation entries to a formatted string
+            conversation_text = "\n".join([
+                f"User: {entry['user_input']}\nAssistant: {entry['assistant_response']}"
+                for entry in conversation_entries
+            ])
+
             logger.debug(
                 f"Created text data from conversation history for session {session_id}"
             )
@@ -141,7 +148,7 @@ async def fetch_product_suggestions(session_id: str) -> List[Dict[str, Any]]:
 
             try:
                 # Generate tools and get products
-                await portia_service.generate_tools(text_data)
+                await portia_service.generate_tools(conversation_text)
                 logger.info(f"Successfully generated tools for session {session_id}")
 
                 # Get products for each step (assuming 3 steps as shown in the example)
