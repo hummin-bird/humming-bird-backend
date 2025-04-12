@@ -59,4 +59,3 @@ with open(
     "humming-bird-backend/app/services/initiation_plan.json", "w", encoding="utf-8"
 ) as f:
     json.dump(plan_data, f, indent=2)
-

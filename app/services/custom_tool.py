@@ -39,8 +39,10 @@ class LLMToolSchema(BaseModel):
         description="The task to be completed by the LLM tool.",
     )
 
+
 class UrlOnlySchema(BaseModel):
     url: AnyUrl
+
 
 class LLMstructureTool(Tool[str]):
     """General purpose LLM tool. Customizable to user requirements. Won't call other tools."""
@@ -160,7 +162,6 @@ class LLMlistTool(Tool[str]):
         return response.model_dump(mode="json")
 
 
-
 MAX_RESULTS = 3
 
 
@@ -182,9 +183,9 @@ class LogoSearchTool(Tool[str]):
     id: str = "logo_search_tool"
     name: str = "Logo Search Tool"
     description: str = (
-    "Searches the internet (using Tavily) to find the official logo of the website provided in the search query. "
-    "Returns only the URL of the logo image (preferably in PNG or SVG format). "
-    "The search tool can access general website information but will only return a logo URL and no other data."
+        "Searches the internet (using Tavily) to find the official logo of the website provided in the search query. "
+        "Returns only the URL of the logo image (preferably in PNG or SVG format). "
+        "The search tool can access general website information but will only return a logo URL and no other data."
     )
     args_schema: type[BaseModel] = SearchToolSchema
     output_schema: tuple[Union[str, Type[BaseModel]], str]
