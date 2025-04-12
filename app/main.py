@@ -1,7 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.routes.route import router
-from app.config import settings
 from dotenv import load_dotenv
 
 # Load environment variables
