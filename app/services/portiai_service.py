@@ -112,15 +112,15 @@ class PortiaAIService:
             )
             logger.info(f"Setup LLM configuration for session {self.session_id}")
             
-            # Create a custom handler for Portia logs
-            class PortiaLogHandler(logging.Handler):
+            # Create a custom handler for logs
+            class LogHandler(logging.Handler):
                 def emit(self, record):
                     asyncio.create_task(log_queue.put(record))
             
-            # Configure Portia's logger to use our handler
-            portia_logger = logging.getLogger('portia')
-            portia_logger.addHandler(PortiaLogHandler())
-            portia_logger.setLevel(logging.INFO)
+            # Configure the root logger to capture all logs
+            root_logger = logging.getLogger()
+            log_handler = LogHandler()
+            root_logger.addHandler(log_handler)
             
             # Instantiate a Portia instance
             self.portia = Portia(
@@ -176,6 +176,10 @@ class PortiaAIService:
             # Signal the log streaming task to stop
             await log_queue.put(None)
             await log_stream_task
+            
+            # Clean up the log handler
+            root_logger = logging.getLogger()
+            root_logger.removeHandler(log_handler)
 
 
 if __name__ == "__main__":
