@@ -128,34 +128,13 @@ async def get_products(session_id: str, request: Request):
 
 @router.websocket("/ws/logs/{session_id}")
 async def websocket_logs(websocket: WebSocket, session_id: str):
-    # Accept the WebSocket connection
-    await websocket.accept()
-    
-    # Add CORS headers
-    await websocket.send_json({
-        "type": "connection_established",
-        "message": "WebSocket connection established"
-    })
-    
+    await websocket_manager.connect(websocket, session_id)
     try:
-        # Connect to the WebSocket manager
-        await websocket_manager.connect(websocket, session_id)
-        
-        # Keep the connection alive
         while True:
-            try:
-                # Wait for any message from the client
-                data = await websocket.receive_text()
-                # You can handle client messages here if needed
-            except Exception as e:
-                logger.error(f"Error receiving message from WebSocket: {str(e)}")
-                break
+            # Keep the connection alive
+            data = await websocket.receive_text()
+            # You can handle any client messages here if needed
     except Exception as e:
         logger.error(f"WebSocket error for session {session_id}: {str(e)}")
     finally:
-        # Clean up the connection
         websocket_manager.disconnect(websocket, session_id)
-        try:
-            await websocket.close()
-        except:
-            pass

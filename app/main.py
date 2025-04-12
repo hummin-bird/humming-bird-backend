@@ -2,9 +2,12 @@ from fastapi import FastAPI, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
 from app.routes.route import router
 from dotenv import load_dotenv
+import logging
 
 # Load environment variables
 load_dotenv()
+
+logger = logging.getLogger(__name__)
 
 app = FastAPI(
     title="Humming Bird Backend",
@@ -24,14 +27,20 @@ app.add_middleware(
 # Include routers
 app.include_router(router, prefix="/api/v1")
 
-# Add a middleware to handle WebSocket connections
-@app.middleware("http")
-async def add_cors_headers(request, call_next):
-    response = await call_next(request)
-    if request.url.path.startswith("/ws/"):
-        response.headers["Access-Control-Allow-Origin"] = "*"
-        response.headers["Access-Control-Allow-Credentials"] = "true"
-    return response
+# Add a global WebSocket endpoint
+@app.websocket("/ws/logs/{session_id}")
+async def websocket_endpoint(websocket: WebSocket, session_id: str):
+    from app.utils.websocket_manager import websocket_manager
+    await websocket_manager.connect(websocket, session_id)
+    try:
+        while True:
+            # Keep the connection alive
+            data = await websocket.receive_text()
+            # You can handle any client messages here if needed
+    except Exception as e:
+        logger.error(f"WebSocket error for session {session_id}: {str(e)}")
+    finally:
+        websocket_manager.disconnect(websocket, session_id)
 
 @app.get("/")
 async def root():
