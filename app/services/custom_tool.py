@@ -12,7 +12,7 @@ from typing import List, Union, Type
 import os
 import httpx
 from portia.errors import ToolHardError, ToolSoftError
-import httpx
+from typing import Dict, Any
 
 
 class StringListSchema(BaseModel):

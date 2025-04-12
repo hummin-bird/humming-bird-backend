@@ -5,8 +5,10 @@ from fastapi import WebSocket, WebSocketDisconnect
 from datetime import datetime
 import asyncio
 import time
+from app.logging_config import setup_logger
 
-logger = logging.getLogger(__name__)
+# Get the logger for this module
+logger = setup_logger(__name__, "websocket.log")
 
 class WebSocketManager:
     def __init__(self):

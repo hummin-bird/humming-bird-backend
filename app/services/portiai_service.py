@@ -1,20 +1,23 @@
 import re
-from typing import Dict, Any, List
-from dotenv import load_dotenv
 import os
 import sys
-from pathlib import Path
-from openai import OpenAI
+import json
 import asyncio
+from typing import Dict, Any, List
+from pathlib import Path
+from dotenv import load_dotenv
+from openai import OpenAI
+from app.logging_config import setup_logger
+from app.utils.websocket_manager import websocket_manager
+
+# Load environment variables first
+load_dotenv()
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
 # Add the project root to the Python path
 project_root = str(Path(__file__).parent.parent.parent)
 if project_root not in sys.path:
     sys.path.append(project_root)
-
-
-from app.utils.websocket_manager import websocket_manager
-import json
 
 # Get the logger for this module
 logger = setup_logger(__name__, "portia_ai.log")
@@ -32,8 +35,6 @@ def clean_text(text: str) -> str:
     text = re.sub(r'\s+', ' ', text).strip()
     return text
 
-load_dotenv()
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 from portia import (
     Config,
     Portia,
@@ -182,30 +183,6 @@ class PortiaAIService:
                 if self.session_id:
                     await websocket_manager.broadcast_log(self.session_id, error_msg, "ERROR")
                 raise
-                
-                plan_json = plan_json.replace("PRODUCT_INFO", cleaned_text)
-
-                try:
-                    plan = Plan.model_validate_json(plan_json)
-                    plan.id = PlanUUID()
-                except Exception as e:
-                    logger.error(f"Error validating plan JSON: {str(e)}")
-                    logger.error(f"Plan JSON content: {plan_json[:500]}...")  # Log first 500 chars of problematic JSON
-                    raise
-
-            logger.info("load saved plan")
-            with execution_context(end_user_id="demo"):
-                self.portia.storage.save_plan(plan)
-                self.plan_run = self.portia.run_plan(plan)
-            logger.info("Plan finished")
-
-            output = self.plan_run.outputs.step_outputs[f"$structured_output"].value["products"]
-            logger.info(f"Products Achieved {output}")
-            logo_urls = await self.logo_search_service.get_logo_urls(output)
-            output = self.logo_search_service.reassign_logo_urls(output, logo_urls) 
-            
-            logger.info("Logo URLs Achieved")   
-            return output
 
         finally:
             # Signal the log streaming task to stop
