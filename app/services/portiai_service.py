@@ -1,12 +1,10 @@
 import re
 from typing import Dict, Any, List
-import logging
 from dotenv import load_dotenv
 import os
 import sys
 from pathlib import Path
 from openai import OpenAI
-from yarl import Query
 
 # Add the project root to the Python path
 project_root = str(Path(__file__).parent.parent.parent)
@@ -14,6 +12,7 @@ if project_root not in sys.path:
     sys.path.append(project_root)
 
 from app.logging_config import setup_logger
+
 import json
 
 # Get the logger for this module
@@ -65,6 +64,8 @@ class PortiaAIService:
     def __init__(self):
         logger.info("Initialize Portia AI Service")
         self.openai_client = OpenAI(api_key=OPENAI_API_KEY)
+        from app.services.logo_search import LogoSearchService
+        self.logo_search_service = LogoSearchService()
 
 
     async def generate_tools(self, text_data: str) -> Dict[str, Any]:
@@ -119,66 +120,17 @@ class PortiaAIService:
                 self.plan_run = self.portia.run_plan(plan)
             logger.info("Plan finished")
 
-            output = self.plan_run.outputs.step_outputs[f"$structured_output"].value
+            output = self.plan_run.outputs.step_outputs[f"$structured_output"].value["products"]
             logger.info(f"Products Achieved {output}")
-
-            product_names = self.get_product_name(output)
-            logo_urls = await self.get_logo_url(product_names)
-            output = self.reassign_logo_url(output, logo_urls)
+            logo_urls = await self.logo_search_service.get_logo_urls(output)
+            output = self.logo_search_service.reassign_logo_urls(output, logo_urls) 
+            
             logger.info("Logo URLs Achieved")   
-            return output["products"]
+            return output
             
         except Exception as e:
             logger.error(f"Error in generate_tools: {str(e)}")
             raise
-    
-    def get_product_name(self, products):
-        return [products["products"][i]["name"] for i in range(len(products["products"]))]
-
-    async def logo_url(self, product_name: str) -> str:
-        query = f"The product is {product_name}, Find the image URL of the product logo ending with png or svg. Just give me the image URL, no additional information." 
-        response = self.openai_client.responses.create(
-            model="gpt-4o-mini",
-            input=query,
-            tools=[{"type": "web_search"}],
-        )
-        logger.info(f"Response: {response.output[1].content[0].text}")
-        return self.extract_url_from_text(response.output[1].content[0].text)
-    
-    async def get_logo_url(self, product_names):
-        urls = [await self.logo_url(product_name) for product_name in product_names]
-        logger.info(f"Logo URLs: {urls}")
-        return urls
-    
-    def reassign_logo_url(self, products: dict, logo_urls) -> dict:
-        for i in range(len(products["products"])):
-            products["products"][i]["logo_url"] = logo_urls[i]
-        return products
-    
-    # Function to extract URL from the response
-    def extract_url_from_text(self,text: str) -> str:
-        """
-        Extract URL from text string
-        
-        Args:
-            text: Text containing a URL
-            
-        Returns:
-            str: The extracted URL or empty string if not found
-        """
-        # Pattern to match URLs
-        url_pattern = r'https?://[^\s<>"]+|www\.[^\s<>"]+'
-        match = re.search(url_pattern, text)
-        if match:
-            logger.info(f"Found Logo URL: {match.group(0)}")
-            return match.group(0)
-        else:
-            logger.info("No Logo URL Found")
-            return ""
-
-
-
-
 
 if __name__ == "__main__":
     import asyncio
