@@ -35,7 +35,7 @@ conversations = {}
 
 async def verify_webhook_signature(request: Request) -> Dict[str, Any]:
     """
-    Verify the webhook signature from ElevenLabs
+    Verify the webhook signature from ElevenLabs if present
     """
     try:
         body = await request.body()
@@ -46,9 +46,15 @@ async def verify_webhook_signature(request: Request) -> Dict[str, Any]:
         logger.info(f"Headers: {dict(request.headers)}")
         logger.info(f"Body: {body.decode()}")
         
-        if not signature or not settings.ELEVENLABS_WEBHOOK_SECRET:
-            logger.error("Missing signature or webhook secret")
-            raise HTTPException(status_code=401, detail="Missing signature or webhook secret")
+        # If no signature is present, just return the parsed body
+        if not signature:
+            logger.info("No signature present, skipping verification")
+            return json.loads(body)
+        
+        # If signature is present but no secret is configured
+        if not settings.ELEVENLABS_WEBHOOK_SECRET:
+            logger.error("Webhook secret not configured but signature present")
+            raise HTTPException(status_code=401, detail="Webhook secret not configured")
         
         # Verify the signature
         expected_signature = hmac.new(
