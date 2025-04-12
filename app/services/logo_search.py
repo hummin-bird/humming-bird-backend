@@ -76,7 +76,7 @@ class LogoSearchService:
             return match.group(0)
         else:
             logger.info("No Logo URL Found")
-            return self.logo_cache["default"]
+            return ""
     
     def is_valid_url(self, url: str) -> bool:
         """
@@ -117,7 +117,7 @@ class LogoSearchService:
         logger.info(f"Validating {len(urls)} URLs")
         valid_urls = []
         for url in urls:
-            if self.is_valid_url(url):
+            if self.is_valid_url(url) and url.endswith(('.png', '.jpg', '.svg')):
                 valid_urls.append(url)
         logger.info(f"Found {len(valid_urls)} valid URLs out of {len(urls)}")
         return valid_urls
@@ -165,6 +165,9 @@ class LogoSearchService:
             logger.info(f"Using cached logo URL for {product_name}: {cached_url}")
             return cached_url
         
+        if "tools" in product_name:
+            return self.logo_cache["default"]
+        
         logger.info(f"Searching for logo URL for product: {product_name}, website: {product_website}")
         query = f"The product is {product_name}"
         if product_website:
@@ -205,7 +208,9 @@ class LogoSearchService:
                 self.logo_cache[product_name] = result
                 self._save_cache()
                 logger.info(f"Saved logo URL for {product_name} to cache")
-            
+            else:
+                result = self.logo_cache["default"]
+                logger.info(f"No logo URL found for {product_name}, using default logo")
             return result
         except Exception as e:
             logger.error(f"Error searching for logo URL for {product_name}: {str(e)}")
@@ -246,7 +251,7 @@ class LogoSearchService:
         """
         logger.info(f"Reassigning {len(logo_urls)} logo URLs to {len(products)} products")
         for i in range(len(products)):
-            products[i]["logo_url"] = logo_urls[i]
+            products[i]["image_url"] = logo_urls[i]
             logger.info(f"Assigned logo URL to product {i+1}: {logo_urls[i]}")
         return products
     
