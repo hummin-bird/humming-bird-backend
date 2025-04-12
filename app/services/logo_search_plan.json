@@ -1,0 +1,32 @@
+{
+  "id": "plan-fcbb249a-8eaa-41dd-810a-8bbe424681a3",
+  "plan_context": {
+    "query": "Search online for the official logo image URL of the product available on the website: https://chatgpt.com. Prefer high-quality, transparent PNG or SVG formats. Return a direct link to the logo hosted on the official domain if possible. ",
+    "tool_ids": [
+      "llm_structure_tool",
+      "llm_tool",
+      "search_tool"
+    ]
+  },
+  "steps": [
+    {
+      "task": "Search online for the official logo image URL of the product available on the website: https://chatgpt.com. Prefer high-quality, transparent PNG or SVG formats.",
+      "inputs": [],
+      "tool_id": "llm_tool",
+      "output": "$search_results",
+      "condition": null
+    },
+    {
+      "task": "Return a direct link to the logo hosted on the official domain if possible from the search results.",
+      "inputs": [
+        {
+          "name": "$search_results",
+          "description": "Search results for the logo of the product on https://chatgpt.com"
+        }
+      ],
+      "tool_id": "llm_tool",
+      "output": "$logo_url",
+      "condition": null
+    }
+  ]
+}

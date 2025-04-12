@@ -1,7 +1,7 @@
 {
   "id": "plan-1694229f-5b28-41a6-a791-824bdfed2526",
   "plan_context": {
-    "query": "The user says PRODUCT_INFO. Find the steps to build this product for each step, search the internet and give me 5 best tools to fit into a structured output using the tool llm_structure_tool. ",
+    "query": "The user says PRODUCT_INFO. Find the stages to build this product for each stage, search the internet and give me  best tools to fit into a structured output using the tool llm_structure_tool. ",
     "tool_ids": [
       "llm_structure_tool",
       "llm_tool",
@@ -9,15 +9,9 @@
     ]
   },
   "steps": [
+    
     {
-      "task": "Given the request PRODUCT_INFO, write a concise product specification including target audience, purpose and goals, key features and functionality, budget and resources, and product type. Summarize the most important details clearly and limit the output to 50 words.",
-      "inputs": [],
-      "tool_id": "llm_tool",
-      "output": "$product_info",
-      "condition": null
-    },
-    {
-      "task": "Based on the request PRODUCT_INFO, outline the first 3 steps for the software development. Each step should be a clear, single sentence, structured as a list of strings. Keep the total response under 150 words.",
+      "task": "Based on the request PRODUCT_INFO, outline the 5 stages for the software development of this product. The stages should be limited to programing, UI design and fields closely related to tech only. Each stage should be a clear, single sentence, structured as a list of strings. Keep the total response under 150 words.",
       "inputs": [
         {
           "name": "$product_info",
@@ -25,85 +19,34 @@
         }
       ],
       "tool_id": "llm_list_tool",
-      "output": "$steps_to_build",
+      "output": "$stages_to_build",
       "condition": null
     },
 
     {
-      "task": "Search for the 5 best tools fitting the first step in the structured output. Limit the output to tool name, short description in one sentence, website link, and the link to the product logo image",
+      "task": "Search for only one real software fitting for each stage. Find only 1 tool for each stage, 5 stages in total. Do no make things up. Limit the tool to tool name, short description in one sentence, website link, and the link to the product logo image",
       "inputs": [
                   {
-                    "name": "$first_step",
-                    "value": "$steps_to_build[0]",
-                    "description": "The first step to build the product."
+                    "name": "$stage",
+                    "value": "$stages_to_build",
+                    "description": "The stages to build the product."
                   }
                 ],
       "tool_id": "search_tool",
-      "output": "$tools_for_first_step",
-      "condition": null
-    },
-    {
-      "task": "Organize the identified tools into a structured output.",
-      "inputs": [
-        {
-          "name": "$tools_for_first_step",
-          "description": "The tools identified for the first step."
-        }
-      ],
-      "tool_id": "llm_structure_tool",
-      "output": "$structured_output_1",
+      "output": "$tools_for_five_stages",
       "condition": null
     },
 
     {
-      "task": "Search for the 5 best tools fitting the second step in the structured output. Limit the output to tool name, short description in one sentence, website link, and the link to the product logo image",
-      "inputs": [
-        {
-          "name": "$second_step",
-          "value": "$steps_to_build[1]",
-          "description": "The second step to build the product."
-        }
-      ],
-      "tool_id": "search_tool",
-      "output": "$tools_for_second_step",
-      "condition": null
-    },
-    {
       "task": "Organize the identified tools into a structured output.",
       "inputs": [
         {
-          "name": "$tools_for_second_step",
-          "description": "The tools identified for the second step."
+          "name": "$tools_for_five_stages",
+          "description": "The tools identified for the five stages."
         }
       ],
       "tool_id": "llm_structure_tool",
-      "output": "$structured_output_2",
-      "condition": null
-    },
-
-    {
-      "task": "Search for the 5 best tools fitting the third step in the structured output. Limit the output to tool name, short description in one sentence, website link, and the link to the product logo image",
-      "inputs": [
-        {
-          "name": "$third_step",
-          "value": "$steps_to_build[2]",
-          "description": "The third step to build the product."
-        }
-      ],
-      "tool_id": "search_tool",
-      "output": "$tools_for_third_step",
-      "condition": null
-    },
-    {
-      "task": "Organize the identified tools into a structured output.",
-      "inputs": [
-        {
-          "name": "$tools_for_third_step",
-          "description": "The tools identified for the third step."
-        }
-      ],
-      "tool_id": "llm_structure_tool",
-      "output": "$structured_output_3",
+      "output": "$structured_output",
       "condition": null
     }
   ]
