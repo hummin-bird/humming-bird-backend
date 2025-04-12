@@ -15,6 +15,8 @@ class WebSocketManager:
         self.ping_interval = 30  # seconds
         self.ping_timeout = 10  # seconds
         self.connection_timeout = 300  # 5 minutes
+        self._ping_tasks: Dict[str, asyncio.Task] = {}
+        self._timeout_tasks: Dict[str, asyncio.Task] = {}
 
     async def connect(self, websocket: WebSocket, session_id: str):
         try:
@@ -31,10 +33,10 @@ class WebSocketManager:
             logger.info(f"WebSocket connected for session {session_id}")
             
             # Start ping task
-            asyncio.create_task(self._ping_task(websocket, session_id))
+            self._ping_tasks[session_id] = asyncio.create_task(self._ping_task(websocket, session_id))
             
             # Start connection timeout task
-            asyncio.create_task(self._connection_timeout_task(websocket, session_id))
+            self._timeout_tasks[session_id] = asyncio.create_task(self._connection_timeout_task(websocket, session_id))
             
         except Exception as e:
             logger.error(f"Error connecting WebSocket for session {session_id}: {str(e)}")
@@ -88,6 +90,13 @@ class WebSocketManager:
                     if session_id in self.log_handlers:
                         logging.getLogger().removeHandler(self.log_handlers[session_id])
                         del self.log_handlers[session_id]
+                    # Cancel tasks
+                    if session_id in self._ping_tasks:
+                        self._ping_tasks[session_id].cancel()
+                        del self._ping_tasks[session_id]
+                    if session_id in self._timeout_tasks:
+                        self._timeout_tasks[session_id].cancel()
+                        del self._timeout_tasks[session_id]
             logger.info(f"WebSocket disconnected for session {session_id}")
         except Exception as e:
             logger.error(f"Error disconnecting WebSocket for session {session_id}: {str(e)}")
