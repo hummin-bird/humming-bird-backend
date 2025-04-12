@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Request, HTTPException
+from fastapi import APIRouter, Request, HTTPException, WebSocket
 from pydantic import ValidationError
 import logging
 from app.models.elevenlabs import ElevenLabsRequest
@@ -8,6 +8,8 @@ from app.services.fetchers import (
     fetch_product_suggestions,
     store_conversation,
 )
+from app.utils.websocket_manager import websocket_manager
+from app.services.portiai_service import PortiaAIService
 
 logger = logging.getLogger(__name__)
 
@@ -83,8 +85,34 @@ async def get_products(session_id: str, request: Request):
         await verify_webhook_signature(request)
 
         try:
-            # Final call to research model for product listing
-            products = await fetch_product_suggestions(session_id)
+            # Create a session-specific PortiaAIService
+            service = PortiaAIService(session_id=session_id)
+            
+            # Get the conversation history for this session
+            if session_id not in conversations or not conversations[session_id]:
+                logger.warning(f"No conversation history found for session {session_id}")
+                return {
+                    "products": [
+                        {
+                            "id": "default",
+                            "name": "No products available",
+                            "description": "Please complete the conversation to get personalized product suggestions",
+                            "website_url": "https://example.com",
+                            "image_url": "https://example.com/image.jpg",
+                        }
+                    ]
+                }
+
+            # Create a text data string from the conversation history
+            text_data = ""
+            for entry in conversations[session_id]:
+                if entry["user_input"]:
+                    text_data += f"User: {entry['user_input']}\n"
+                if entry["clarifying_question"]:
+                    text_data += f"Assistant: {entry['clarifying_question']}\n"
+
+            # Generate products using PortiaAIService
+            products = await service.generate_tools(text_data)
             logger.info(f"Retrieved {len(products)} products for session {session_id}")
             return {"products": products}
         except Exception as e:
@@ -95,3 +123,17 @@ async def get_products(session_id: str, request: Request):
     except Exception as e:
         logger.error(f"Unexpected error in get_products endpoint: {str(e)}")
         raise HTTPException(status_code=500, detail="Internal server error")
+
+
+@router.websocket("/ws/logs/{session_id}")
+async def websocket_logs(websocket: WebSocket, session_id: str):
+    await websocket_manager.connect(websocket, session_id)
+    try:
+        while True:
+            # Keep the connection alive
+            data = await websocket.receive_text()
+            # You can handle any client messages here if needed
+    except Exception as e:
+        logger.error(f"WebSocket error for session {session_id}: {str(e)}")
+    finally:
+        websocket_manager.disconnect(websocket, session_id)
