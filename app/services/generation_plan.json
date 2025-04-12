@@ -1,0 +1,53 @@
+{
+  "id": "plan-1694229f-5b28-41a6-a791-824bdfed2526",
+  "plan_context": {
+    "query": "PRODUCT_INFO. Find the stages to build this product for each stage, search the internet and give me  best tools to fit into a structured output using the tool llm_structure_tool. ",
+    "tool_ids": [
+      "llm_structure_tool",
+      "llm_tool",
+      "search_tool"
+    ]
+  },
+  "steps": [
+    
+    {
+      "task": "Based on the request PRODUCT_INFO, outline the 5 stages for the software development of this product. The stages should be limited to programing, UI design and fields closely related to tech only. Each stage should be a clear, single sentence, structured as a list of strings. Keep the total response under 150 words.",
+      "inputs": [
+        {
+          "name": "$product_info",
+          "description": "Details of the product to build based on the input information."
+        }
+      ],
+      "tool_id": "llm_list_tool",
+      "output": "$stages_to_build",
+      "condition": null
+    },
+
+    {
+      "task": "Find one specific software tool (not a list, article, or category) for each stage. The tool should be an actual product like 'Django' or 'Express.js'. Return the following fields only: Tool name, One-sentence description, Official website link to the product, Direct link to the official product logo image, Do not return any list articles, blog posts, or roundups. Only return a known, real backend development tool.",
+     "inputs": [ 
+                  {
+                    "name": "$stage",
+                    "value": "$stages_to_build",
+                    "description": "The stages to build the product."
+                  }
+                ],
+      "tool_id": "search_tool",
+      "output": "$tools_for_five_stages",
+      "condition": null
+    },
+
+    {
+      "task": "Organize the identified tools into a structured output.",
+      "inputs": [
+        {
+          "name": "$tools_for_five_stages",
+          "description": "The tools identified for the five stages."
+        }
+      ],
+      "tool_id": "llm_structure_tool",
+      "output": "$structured_output",
+      "condition": null
+    }
+  ]
+}
