@@ -12,4 +12,4 @@ setup(
         "pydantic-settings",
         "python-multipart",
     ],
-) 
+)
