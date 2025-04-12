@@ -36,9 +36,9 @@ class LogoSearchService:
         try:
             if os.path.exists(self.cache_file):
                 with open(self.cache_file, 'r') as f:
-                    cache = json.load(f)
-                logger.info(f"Loaded {len(cache)} entries from logo cache")
-                return cache
+                    self.logo_cache = json.load(f)
+                logger.info(f"Loaded {len(self.logo_cache)} entries from logo cache")
+                return self.logo_cache
             else:
                 logger.info("No logo cache file found, creating new cache")
                 return {}
@@ -76,7 +76,7 @@ class LogoSearchService:
             return match.group(0)
         else:
             logger.info("No Logo URL Found")
-            return ""
+            return self.logo_cache["default"]
     
     def is_valid_url(self, url: str) -> bool:
         """
