@@ -155,8 +155,4 @@ AI-suggested tools, features, or growth strategies based on user behavior and in
 
 ---
 
-## 📧 Contact
-
-**Name:** [Your Name]\
-📩 **Email:** [your.email@example.com](mailto\:your.email@example.com)
 
