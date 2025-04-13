@@ -1,5 +1,4 @@
 # Humming Bird Backend Architecture
-<img width="1159" alt="Screenshot 2025-04-13 at 10 07 59 AM" src="https://github.com/user-attachments/assets/fdf30a44-ecbd-4538-8dae-29fe36dda8c3" />
 
 ## Overview
 Humming Bird Backend is a FastAPI application that provides AI-powered product recommendations based on user conversations. The system uses multiple AI services including OpenAI and Portia to generate tailored product suggestions.
