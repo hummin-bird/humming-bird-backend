@@ -24,7 +24,7 @@
     },
 
     {
-      "task": "Find one specific software tool (not a list, article, or category) for each stage. The tool should be an actual product like 'Django' or 'Express.js'. Return the following fields only: Tool name, One-sentence description, Official website link to the product, Direct link to the official product logo image, Do not return any list articles, blog posts, or roundups. Only return a known, real backend development tool.",
+      "task": "Find one specific software tool (not a list, article, or category) for each stage. Consider tools such as [Polygon, Superteam, Portia, StarkWare, Gensyn, wormhole, Internet Computer, Nether Mind, Zero, Tonk, encode club]. The tool should be an actual product like 'Django' or 'Express.js'. Return the following fields only: Tool name, One-sentence description, Official website link to the product, Direct link to the official product logo image, Do not return any list articles, blog posts, or roundups. Only return a known, real backend development tool.",
      "inputs": [ 
                   {
                     "name": "$stage",

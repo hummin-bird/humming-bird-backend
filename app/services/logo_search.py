@@ -159,11 +159,15 @@ class LogoSearchService:
         Returns:
             str: URL of the product logo
         """
-        # Check if we have a cached result for this product
-        if product_name in self.logo_cache:
-            cached_url = self.logo_cache[product_name]
-            logger.info(f"Using cached logo URL for {product_name}: {cached_url}")
-            return cached_url
+        # Check for partial matches in cache
+        product_name_lower = product_name.lower()
+        for cache_key in self.logo_cache:
+            if (product_name_lower in cache_key.lower() or 
+                cache_key.lower() in product_name_lower or 
+                product_name_lower in cache_key.lower()):
+                cached_url = self.logo_cache[cache_key]
+                logger.info(f"Using cached logo URL for {product_name} (matched with {cache_key}): {cached_url}")
+                return cached_url
         
         if "tools" in product_name:
             return self.logo_cache["default"]
