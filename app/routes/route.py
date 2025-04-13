@@ -9,10 +9,7 @@ from app.services.fetchers import (
     store_conversation,
     conversations,
 )
-from app.utils.websocket_manager import websocket_manager
 from app.services.portiai_service import PortiaAIService
-import time
-import asyncio
 
 logger = logging.getLogger(__name__)
 
@@ -113,19 +110,6 @@ async def get_products(session_id: str, request: Request):
                     text_data += f"User: {entry['user_input']}\n"
                 if entry["clarifying_question"]:
                     text_data += f"Assistant: {entry['clarifying_question']}\n"
-
-            # Wait for WebSocket connection to be established
-            max_wait_time = 10  # seconds
-            start_time = time.time()
-            
-            while time.time() - start_time < max_wait_time:
-                if session_id in websocket_manager.active_connections:
-                    break
-                await asyncio.sleep(0.1)
-            
-            if session_id not in websocket_manager.active_connections:
-                logger.warning(f"No WebSocket connection established for session {session_id} after {max_wait_time} seconds")
-                # Continue anyway, but log a warning
 
             # Generate products using PortiaAIService
             products = await service.generate_tools(text_data)
