@@ -14,7 +14,7 @@ The **Encode AI Hackathon 2025** is a three-day immersive AI experience held in 
 
 With the help of **Portia AI**, Humming Bird transforms vague startup ideas into actionable roadmaps.
 
-** Check out our [exclidraw](https://excalidraw.com/#room=20a848c6f4d32631a366,Djw04yUeLslEFkLRntfsHw) for the draft plan before we code **
+**Check out our [exclidraw](https://excalidraw.com/#room=20a848c6f4d32631a366,Djw04yUeLslEFkLRntfsHw) for the draft plan before we code**
 
 ## ⚙️ Installation (Run Locally)
 
