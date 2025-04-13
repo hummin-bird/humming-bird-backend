@@ -85,9 +85,9 @@ pnpm run dev
 
 ## 👥 Team Members
 
-- **[Ying Liu]**  [GitHub](https://github.com/sophia172)
--  **[Mu Jing Tsai]**  [GitHub](https://github.com/moojing)
-- **[Ana Shevchenko]**  [GitHub](https://github.com/a17o)
+- **[Ying Liu]** -[GitHub](https://github.com/sophia172)
+-  **[Mu Jing Tsai]** -[GitHub](https://github.com/moojing)
+- **[Ana Shevchenko]** -[GitHub](https://github.com/a17o)
 
 ---
 
