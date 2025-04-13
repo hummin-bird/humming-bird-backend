@@ -6,124 +6,103 @@ The **Encode AI Hackathon 2025** is a three-day immersive AI experience held in 
 
 ## 🚀 About Humming Bird
 
-**Humming Bird** is an AI-powered startup ideation and tool recommendation assistant. It:
+**Humming Bird** is an AI-powered startup ideation and tool recommendation assistant that:
 
 - Chats with users to understand their startup vision
-- Breaks down the business idea into structured development steps
-- Searches for the best tools and technologies to build the product
+- Breaks down business ideas into structured development steps
+- Recommends optimal tools and technologies to build the product
 
 With the help of **Portia AI**, Humming Bird transforms vague startup ideas into actionable roadmaps.
 
+** Check out our [exclidraw](https://excalidraw.com/#room=20a848c6f4d32631a366,Djw04yUeLslEFkLRntfsHw) for the draft plan before we code **
+
 ## ⚙️ Installation (Run Locally)
 
-### 1. Clone the Repository
+### 1. Clone the Repositories
 
 ```bash
 git clone https://github.com/hummin-bird/humming-bird-frontend.git
-cd portia-hackathon-hummingbird
+git clone https://github.com/hummin-bird/humming-bird-backend.git
 ```
 
-### 2. Install Dependencies
+### 2. Set Up Environment Variables
 
-Open two terminals for Frontend and Backend.
-
-#### Frontend
+Copy the `.env.example` to `.env` and insert your API keys:
 
 ```bash
-cd frontend/hummingbird-ui
-npm install
-```
-
-#### Backend
-
-Make sure Python 3.10+ is installed:
-
-```bash
-cd backend
-pip install -r requirements.txt
-```
-
-### 3. Set Up Environment Variables
-
-Copy `.env.example` to `.env` and add your API keys:
-
-```bash
+cd humming-bird-backend
 cp .env.example .env
 ```
 
-- `PORTIA_API_KEY`: Your Portia AI key
-- `OPENAI_API_KEY`: Your OpenAI API key
+#### Required Environment Variables:
 
-### 4. Run the Servers
+- `PORTIA_API_KEY`: Portia AI key for workflow generation and tool recommendations
+- `OPENAI_API_KEY`: OpenAI key for GPT-4o-mini to enhance conversation and reasoning
+- `GEMINI_API_KEY`: API key for Gemini (optional LLM integration)
+- `TAVILY_API_KEY`: Key for smart search via Tavily
+- `AGENT_ID`: Identifier for the deployed agent in your backend
+- `ELEVENLABS_API_KEY`: Key for ElevenLabs Conversational AI for natural voice interaction
+
+### 3. Install Dependencies
+
+#### Backend
+
+Make sure Python 3.12+ is installed:s
+
+```bash
+cd humming-bird-backend
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+python main.py
+```
 
 #### Frontend
 
 ```bash
-cd frontend/hummingbird-ui
-npm run dev
+cd humming-bird-frontend
+brew install pnpm
+pnpm install
+pnpm run dev
 ```
-
-#### Backend
-
-```bash
-cd backend
-uvicorn main:app --reload
-```
-
 ---
 
 ## 📁 About the Project
 
-- **What?**\
-  Humming Bird is an AI agent assistant that turns abstract startup ideas into structured development blueprints and toolkits.
+- **What?**
+  Humming Bird is an AI assistant that transforms abstract startup ideas into development blueprints and toolkits.
 
-- **Why?**\
-  Many aspiring entrepreneurs have ideas but struggle to know where to start. Humming Bird gives them a guided path to execution.
+- **Why?**
+  Many aspiring entrepreneurs have ideas but struggle with execution. Humming Bird offers a guided path.
 
-- **How?**\
-  Using Portia AI, the app decomposes user input into a step-by-step tech plan and finds actual tools (e.g., Django, Supabase, React) to execute it.
+- **How?**
+  Using Portia AI, it decomposes user input into a tech roadmap and identifies practical tools (e.g., Django, Supabase, React).
 
 ---
 
-##
+## 👥 Team Members
 
-### Team Members
-
-- **[Your Name]** - [GitHub](https://github.com/YOUR_USERNAME)
+- **[Ying Liu]**  [GitHub](https://github.com/sophia172)
+-  **[Mu Jing Tsai]**  [GitHub](https://github.com/moojing)
+- **[Ana Shevchenko]**  [GitHub](https://github.com/a17o)
 
 ---
 
 ## 🎯 Key Features
 
+- **Conversational Business Ideation**: Real-time voice-driven dialogue powered by ElevenLabs helps users express and refine ideas naturally.
 
+- **Strategic Workflow Generation**: Portia AI translates conversations into structured, actionable development workflows.
 
-- **Conversational Business Ideation**
+- **Tool Recommendations**: Suggests relevant tools and technologies at each development phase, powered by Portia's smart selection logic.
 
-Humming Bird engages users in dynamic, voice-driven dialogues powered by ElevenLabs' Conversational AI. This interaction helps users articulate and refine their business ideas through natural, real-time conversations.​
+- **Custom Portia AI Integration**: Uses GPT-4o-mini alongside tailored modules like planning, search, and LLMs for enhanced interaction.
 
-Strategic Workflow Generation
+- **Beautiful User Interface**: Clean, engaging UI to display conversation history and insights intuitively.
 
-Leveraging Portia AI's open-source SDK, Humming Bird translates user inputs into structured development strategies. The system employs Portia's planning capabilities to outline clear, actionable steps for building the proposed business product.​
+- **Persistent Conversation History**: Stores sessions for context-aware assistance and ongoing project development.
 
-- **Tool Recommendation for Each Development Phase**
-
-For every stage identified in the development strategy, Humming Bird recommends specific tools. This is achieved through Portia AI's integration capabilities, allowing for the selection of appropriate technologies tailored to each development phase.​
-
-- **Customized Portia AI Integration**
-
-The backbone of Humming Bird is a customized implementation of Portia AI, enhanced with OpenAI's GPT-4o-mini. The integration includes tailored planning modules, search functionalities, and language model tools, ensuring a seamless and efficient user experience.​
-
-- **Intuitive and Engaging User Interface**
-
-Humming Bird features a beautifully designed UI that presents the conversation dialogue in a clear and engaging manner. The interface is crafted to enhance user experience, making interactions both visually appealing and user-friendly.​
-
-- **Persistent Conversation History**
-
-To provide context-aware assistance, Humming Bird stores and retrieves conversation histories. This ensures continuity in interactions, allowing users to revisit and build upon previous dialogues seamlessly.​
-
-- **Sponsor Showcase Section**
-
-The application includes a dedicated section on the front end to feature sponsors. This space allows for the presentation of sponsor information, highlighting their contributions and maintaining transparency.​
+- **Sponsor Showcase Section**: Frontend section to highlight sponsors, supporting transparency and acknowledgment.
 
 ---
 
@@ -138,26 +117,38 @@ The application includes a dedicated section on the front end to feature sponsor
 ## 🔗 Links
 
 - **Live Demo:** [Coming Soon]
-- **GitHub Repo:** \
-  frontend: [https://github.com/hummin-bird/humming-bird-frontend.git](https://github.com/hummin-bird/humming-bird-frontend.git)\
-  backend: [https://github.com/hummin-bird/humming-bird-backend.git](https://github.com/hummin-bird/humming-bird-backend.git)
+- **GitHub Repos:**
+  - Frontend: [https://github.com/hummin-bird/humming-bird-frontend.git](https://github.com/hummin-bird/humming-bird-frontend.git)
+  - Backend: [https://github.com/hummin-bird/humming-bird-backend.git](https://github.com/hummin-bird/humming-bird-backend.git)
 
 ---
 
 ## 💡 Future Enhancements
 
-- **Cross-Industry Product Support**
+We aim to evolve Humming Bird into a universal launchpad for all types of products, not just software. Planned features include:
 
-  Expanding beyond software to accommodate physical goods, services, and digital content, enabling creators across various industries to bring their ideas to life.​
-- **Integrated Product Launch Tools**
+### 🌐 Cross-Industry Product Support
 
-  Providing users with detailed analytics on market trends, user engagement, and product performance to inform decision-making and strategy.​
-- **Community Engagement and Feedback**
+Support for physical goods, services, digital media — expanding usability beyond software.
 
-  Building a vibrant community where users can share ideas, provide feedback, and collaborate, fostering a supportive environment for innovation.​
-- **Advanced Analytics and Insights**
+### 🚀 Integrated Launch Tools
 
-  Providing users with detailed analytics on market trends, user engagement, and product performance to inform decision-making and strategy.​
+End-to-end platform for ideation to launch: hosting, deployment, analytics, and customer feedback.
+
+### 👥 Community Engagement and Feedback
+
+- **Forums & Q&A**: For peer-to-peer help and idea exchange
+- **Surveys & Feedback Tools**: Continuous improvement via community insight
+- **Reviews & Testimonials**: Build transparency and reputation
+- **Recognition Systems**: Incentivize and reward user engagement
+
+### 📊 Advanced Analytics
+
+Real-time insights on user behavior, tech trends, and idea viability.
+
+### 🤖 Personalized Recommendations
+
+AI-suggested tools, features, or growth strategies based on user behavior and industry trends.
 
 ---
 
