@@ -20,7 +20,7 @@ if project_root not in sys.path:
     sys.path.append(project_root)
 
 from app.logging_config import setup_logger
-# from app.utils.websocket_manager import websocket_manager
+from app.utils.websocket_manager import websocket_manager
 
 # Get the logger for this module
 logger = setup_logger(__name__, "portia_ai.log")
