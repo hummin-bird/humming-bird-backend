@@ -25,7 +25,9 @@ Through this workflow, Portia AI empowers Humming Bird to provide thoughtful, ta
 **Check out our [Excalidraw draft plan](https://excalidraw.com/#room=20a848c6f4d32631a366,Djw04yUeLslEFkLRntfsHw) before we code!**
 
 ## 🗺️ Code Architecture
-Explore our backend code structure [here](https://github.com/hummin-bird/humming-bird-backend/blob/main/code_architecture.md).
+
+- [Backend Code Architecture](https://github.com/hummin-bird/humming-bird-backend/blob/main/code_architecture.md)
+- [Frontend Code Architecture](https://github.com/hummin-bird/humming-bird-frontend/blob/main/code-architecture.md)
 
 ## 🛠️ Installation Guide
 
