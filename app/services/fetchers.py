@@ -8,15 +8,17 @@ from app.services.portiai_service import PortiaAIService
 
 logger = logging.getLogger(__name__)
 
+
 def clean_text(text: str) -> str:
     """
     Clean text by removing control characters and extra whitespace
     """
     # Remove control characters
-    text = re.sub(r'[\x00-\x1F\x7F-\x9F]', '', text)
+    text = re.sub(r"[\x00-\x1F\x7F-\x9F]", "", text)
     # Remove extra whitespace
-    text = re.sub(r'\s+', ' ', text).strip()
+    text = re.sub(r"\s+", " ", text).strip()
     return text
+
 
 # Store conversations in memory for now
 conversations = {}
@@ -124,8 +126,8 @@ async def fetch_product_suggestions(session_id: str) -> List[Dict[str, Any]]:
         try:
             conversation_entries = [
                 {
-                    "user_input": clean_text(entry['user_input']),
-                    "assistant_response": clean_text(entry['clarifying_question'])
+                    "user_input": clean_text(entry["user_input"]),
+                    "assistant_response": clean_text(entry["clarifying_question"]),
                 }
                 for entry in conversations[session_id]
                 if entry["user_input"] and entry["clarifying_question"]
@@ -144,10 +146,12 @@ async def fetch_product_suggestions(session_id: str) -> List[Dict[str, Any]]:
                 ]
 
             # Convert conversation entries to a formatted string
-            conversation_text = "\n".join([
-                f"User: {entry['user_input']}\nAssistant: {entry['assistant_response']}"
-                for entry in conversation_entries
-            ])
+            conversation_text = "\n".join(
+                [
+                    f"User: {entry['user_input']}\nAssistant: {entry['assistant_response']}"
+                    for entry in conversation_entries
+                ]
+            )
 
             # Clean the final conversation text
             conversation_text = clean_text(conversation_text)

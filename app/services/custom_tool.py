@@ -104,7 +104,6 @@ class LLMstructureTool(Tool[str]):
         return response.model_dump(mode="json")
 
 
-
 class ListSchema(BaseModel):
     products: List
 
@@ -218,15 +217,16 @@ class LogoSearchTool(Tool[str]):
             return results[:MAX_RESULTS]
         raise ToolSoftError(f"Failed to get answer to search: {json_response}")
 
+
 class WebsiteSearchTool(Tool[str]):
     """Searches the internet to find answers to the search query provided.."""
 
     id: str = "website_search_tool"
     name: str = "Website Search Tool"
     description: str = (
-    "Searches the internet (using Tavily) to find one website provided in the search query. "
-    "Returns only the URL of the website."
-    "The search tool can access general website information but will only return a URL and no other data."
+        "Searches the internet (using Tavily) to find one website provided in the search query. "
+        "Returns only the URL of the website."
+        "The search tool can access general website information but will only return a URL and no other data."
     )
     args_schema: type[BaseModel] = SearchToolSchema
     output_schema: tuple[str, str] = (
@@ -253,12 +253,12 @@ class WebsiteSearchTool(Tool[str]):
         client = httpx.Client(
             timeout=httpx.Timeout(
                 connect=5.0,  # Time to establish connection
-                read=10.0,    # Time to read response
-                write=5.0,    # Time to write request
-                pool=5.0      # Time to get connection from pool
+                read=10.0,  # Time to read response
+                write=5.0,  # Time to write request
+                pool=5.0,  # Time to get connection from pool
             ),
-            retries=3,        # Number of retries
-            retry_delay=1.0   # Delay between retries in seconds
+            retries=3,  # Number of retries
+            retry_delay=1.0,  # Delay between retries in seconds
         )
 
         try:
@@ -268,24 +268,29 @@ class WebsiteSearchTool(Tool[str]):
                     response = client.post(url, headers=headers, json=payload)
                     response.raise_for_status()
                     json_response = response.json()
-                    
+
                     if "answer" in json_response:
                         results = json_response["results"]
                         return results[:MAX_RESULTS]
                     else:
-                        raise ToolSoftError(f"Failed to get answer to search: {json_response}")
-                        
+                        raise ToolSoftError(
+                            f"Failed to get answer to search: {json_response}"
+                        )
+
                 except (httpx.ReadTimeout, httpx.ConnectTimeout) as e:
                     if attempt == 2:  # Last attempt
-                        raise ToolSoftError(f"Search timed out after {attempt + 1} attempts: {str(e)}")
+                        raise ToolSoftError(
+                            f"Search timed out after {attempt + 1} attempts: {str(e)}"
+                        )
                     continue
                 except httpx.HTTPError as e:
                     raise ToolSoftError(f"HTTP error during search: {str(e)}")
-                    
+
         finally:
             client.close()
 
         raise ToolSoftError("Failed to get search results after all attempts")
+
 
 class SearchTool(Tool[str]):
     """Searches the internet to find answers to the search query provided.."""
@@ -310,34 +315,39 @@ class SearchTool(Tool[str]):
 
         url = "https://api.tavily.com/search"
         headers = {"Content-Type": "application/json"}
-        payload = { 
+        payload = {
             "query": search_query,
             "include_answer": True,
             "api_key": api_key,
         }
 
-    
         try:
             # Try the request with retries
             for attempt in range(3):
                 try:
-                    response = httpx.post(url, headers=headers, json=payload, timeout=30)
+                    response = httpx.post(
+                        url, headers=headers, json=payload, timeout=30
+                    )
                     response.raise_for_status()
                     json_response = response.json()
-                    
+
                     if "answer" in json_response:
                         results = json_response["results"]
                         return results[:MAX_RESULTS]
                     else:
-                        raise ToolSoftError(f"Failed to get answer to search: {json_response}")
-                        
+                        raise ToolSoftError(
+                            f"Failed to get answer to search: {json_response}"
+                        )
+
                 except (httpx.ReadTimeout, httpx.ConnectTimeout) as e:
                     if attempt == 2:  # Last attempt
-                        raise ToolSoftError(f"Search timed out after {attempt + 1} attempts: {str(e)}")
+                        raise ToolSoftError(
+                            f"Search timed out after {attempt + 1} attempts: {str(e)}"
+                        )
                     continue
                 except httpx.HTTPError as e:
                     raise ToolSoftError(f"HTTP error during search: {str(e)}")
-                    
+
         finally:
             raise ToolSoftError(f"Failed to get answer to search: {json_response}")
 
