@@ -73,8 +73,9 @@ from portia.plan import PlanUUID
 
 
 class PortiaAIService:
-    def __init__(self):
+    def __init__(self, session_id: str = None):
         logger.info("Initialize Portia AI Service")
+        self.session_id = session_id
         self.openai_client = OpenAI(api_key=OPENAI_API_KEY)
         from app.services.logo_search import LogoSearchService
         self.logo_search_service = LogoSearchService()
