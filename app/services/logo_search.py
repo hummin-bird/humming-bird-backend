@@ -190,8 +190,8 @@ class LogoSearchService:
         )
         query = f"The product is {product_name}"
         if product_website:
-            query += f", website is {product_website}"
-
+            query += f", the official website is {product_website}"
+        
         query += ", Find the image URL of the product logo ending with png, jpg, or svg. Just give me the image URL, no additional information."
 
         try:

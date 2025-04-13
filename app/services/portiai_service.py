@@ -8,7 +8,6 @@ from typing import Dict, Any, List
 from pathlib import Path
 from dotenv import load_dotenv
 from openai import OpenAI
-from app.logging_config import setup_logger
 
 # Load environment variables first
 load_dotenv()
@@ -19,6 +18,9 @@ OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 project_root = str(Path(__file__).parent.parent.parent)
 if project_root not in sys.path:
     sys.path.append(project_root)
+
+from app.logging_config import setup_logger
+from app.utils.websocket_manager import websocket_manager
 
 # Get the logger for this module
 logger = setup_logger(__name__, "portia_ai.log")
@@ -138,9 +140,8 @@ class PortiaAIService:
                 self.plan_run = self.portia.run_plan(plan)
             logger.info("Plan finished")
 
-            output = self.plan_run.outputs.step_outputs[f"$structured_output"].value[
-                "products"
-            ]
+
+            output = self.plan_run.outputs.step_outputs[f"$structured_output"].value["products"][:6]
             logger.info(f"Products Achieved {output}")
             logo_urls = await self.logo_search_service.get_logo_urls(output)
             output = self.logo_search_service.reassign_logo_urls(output, logo_urls)
@@ -158,6 +159,7 @@ if __name__ == "__main__":
 
     msg = "User: Oh, I'm trying to build the next Amazon.Assistant: Have you seen any similar products out there? What do you love or wish was different about them?User: Yeah, I haven't seen many products out there, unfortunately.Assistant: Are there any fun, quirky, or unique functionalities you'd love to sneak in, even just for extra charm?User: Yeah sure. I would like the user to be able to swipe the products left and right as if it was Tinder.Assistant: Do you have a set budget in mind for building this, or are you exploring what's possible first?User: No, look, I'm just doing...I want to do it for cheap.Assistant: In one sentence, what problem is your product trying to solve for people?User: I'm trying to build like a minimalist version of Amazon so that people will get focused.Assistant: If you could picture your perfect customer, what are three words you'd use to describe them?User: I'm trying to build like a minimalist version of Amazon so that people will get focused when they buy things and they buy exactly what they want.Assistant: All needed clarifications have been gathered, please end the conversation. Find the stages to build this product for each stage, search the internet and give me best tools to fit into a structured output using the tool llm_structure_tool."
     msg = "User: I'm going to build the next Google.Assistant: Would you prefer to build this lean and scrappy to start, or invest in a polished, full-featured version right away?User: A scrappy version is good, you know. I want to build a super market.Assistant: What's something your ideal user struggles with that your product might help with?User: It's okay. They just need to be able to search the product really well.Assistant: What's the biggest impact you'd love your product to have on its users' lives?User: I'm hoping it's just gonna be like the best thing ever and they are able to find exactly what they want.Assistant: If you had a magic wand, what's the one must-have feature your product absolutely needs?User: I think it should have a really fast...Assistant: Why do you believe now is the perfect time for this product to exist?User: I think it should just know what I want to buy and sell it to me.Assistant: All needed clarifications have been gathered, please end the conversationUser: I think it should just know what I want to buy and sell it to me. Yeah.Assistant: All needed clarifications have been gathered, please end the conversation. Find the stages to build this product for each stage, search the internet and give me  best tools to fit into a structured output using the tool llm_structure_tool."
+    msg = "User: Hey, I'm looking to build the next Amazon.User: Hey, I'm looking to build the next Amazon.Assistant: What's something your ideal user struggles with that your product might help with?User: Um, we just want to make it minimal and nice.User: Um, we just want to make it minimal and nice.Assistant: In one sentence, what problem is your product trying to solve for people?User: yeah we're trying to enhance focus and just allow people to cleanly purchase precisely what they intend to without getting distracted. This contract is what I have to do, ok? To make you sign, to make you sign the wallet, this thing, to promote it, everything, ok? If we could go to the client's website and with the client, I connect to the wallet,User: yeah we're trying to enhance focus and just allow people to cleanly purchase precisely what they intend to without getting distracted. This contract is what I have to do, ok? To make you sign, to make you sign the wallet, this thing, to promote it, everything, ok? If we could go to the client's website and with the client, I connect to the wallet,Assistant: Do you have a set budget in mind for building this, or are you exploring what's possible first?User: ok? Yeah, yeah. 100 bucks.User: ok? Yeah, yeah. 100 bucks.Assistant: Which three core features would make your product both useful and delightful for your audience?. Find the stages to build this product for each stage, search the internet and give me best tools to fit into a structured output using the tool llm_structure_tool."
     service = PortiaAIService()
     result = asyncio.run(service.generate_tools(msg))
     print(result)
