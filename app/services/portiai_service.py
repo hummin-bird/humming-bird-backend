@@ -9,8 +9,6 @@ from pathlib import Path
 from dotenv import load_dotenv
 from openai import OpenAI
 from app.logging_config import setup_logger
-from app.utils.websocket_manager import websocket_manager
-from app.service.logo_search import LogoSearchService
 
 # Load environment variables first
 load_dotenv()
