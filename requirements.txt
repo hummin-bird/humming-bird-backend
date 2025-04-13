@@ -6,3 +6,4 @@ pydantic-settings==2.8.1
 python-multipart==0.0.9
 portia-sdk-python==0.1.14
 openai==1.72.0
+websockets==12.0
