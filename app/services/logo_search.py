@@ -176,10 +176,10 @@ class LogoSearchService:
                 return ""
             return self.logo_cache["default"]
         
-        logger.info(f"Searching for logo URL for product: {product_name}, website: {product_website}")
+        logger.info(f"Searching foxr logo URL for product: {product_name}, website: {product_website}")
         query = f"The product is {product_name}"
         if product_website:
-            query += f", website is {product_website}"
+            query += f", the official website is {product_website}"
         
         query += ", Find the image URL of the product logo ending with png, jpg, or svg. Just give me the image URL, no additional information."
         
