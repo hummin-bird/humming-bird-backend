@@ -88,7 +88,7 @@ pnpm run dev
 - **Ying Liu**  
   [GitHub](https://github.com/sophia172) | [LinkedIn](https://www.linkedin.com/in/yingliu-data/)
 - **Mu Jing Tsai**  
-  [GitHub](https://github.com/sophia172) | [LinkedIn](https://www.linkedin.com/in/mu-jing-tsai/)
+  [GitHub](https://github.com/moojing) | [LinkedIn](https://www.linkedin.com/in/mu-jing-tsai/)
 - **Ana Shevchenko**  
   [GitHub](https://github.com/a17o) | [LinkedIn](https://www.linkedin.com/in/cronaut/)
 
