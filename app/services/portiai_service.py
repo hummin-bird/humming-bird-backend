@@ -26,24 +26,27 @@ logger = setup_logger(__name__, "portia_ai.log")
 # Get the directory of the current script
 current_dir = os.path.dirname(os.path.abspath(__file__))
 
+
 # Create a custom handler for logs
 class LogHandler(logging.Handler):
     def __init__(self, log_queue):
         super().__init__()
         self.log_queue = log_queue
-        
+
     def emit(self, record):
         asyncio.create_task(self.log_queue.put(record))
+
 
 def clean_text(text: str) -> str:
     """
     Clean text by removing control characters and extra whitespace
     """
     # Remove control characters
-    text = re.sub(r'[\x00-\x1F\x7F-\x9F]', '', text)
+    text = re.sub(r"[\x00-\x1F\x7F-\x9F]", "", text)
     # Remove extra whitespace
-    text = re.sub(r'\s+', ' ', text).strip()
+    text = re.sub(r"\s+", " ", text).strip()
     return text
+
 
 from portia import (
     Config,
@@ -78,8 +81,8 @@ class PortiaAIService:
         self.session_id = session_id
         self.openai_client = OpenAI(api_key=OPENAI_API_KEY)
         from app.services.logo_search import LogoSearchService
-        self.logo_search_service = LogoSearchService()
 
+        self.logo_search_service = LogoSearchService()
 
     async def generate_tools(self, text_data: str) -> Dict[str, Any]:
         """
@@ -108,14 +111,14 @@ class PortiaAIService:
             ],
         )
         logger.info("Load all curstom tools")
-        
+
         try:
             with open(os.path.join(current_dir, "generation_plan.json"), "r") as f:
                 plan_json = f.read()
-                
+
                 # Clean the text data
                 cleaned_text = clean_text(text_data)
-                
+
                 # Replace PRODUCT_INFO with the cleaned text data
                 plan_json = plan_json.replace("PRODUCT_INFO", cleaned_text)
 
@@ -124,7 +127,9 @@ class PortiaAIService:
                     plan.id = PlanUUID()
                 except Exception as e:
                     logger.error(f"Error validating plan JSON: {str(e)}")
-                    logger.error(f"Plan JSON content: {plan_json[:500]}...")  # Log first 500 chars of problematic JSON
+                    logger.error(
+                        f"Plan JSON content: {plan_json[:500]}..."
+                    )  # Log first 500 chars of problematic JSON
                     raise
 
             logger.info("load saved plan")
@@ -133,14 +138,16 @@ class PortiaAIService:
                 self.plan_run = self.portia.run_plan(plan)
             logger.info("Plan finished")
 
-            output = self.plan_run.outputs.step_outputs[f"$structured_output"].value["products"]
+            output = self.plan_run.outputs.step_outputs[f"$structured_output"].value[
+                "products"
+            ]
             logger.info(f"Products Achieved {output}")
             logo_urls = await self.logo_search_service.get_logo_urls(output)
-            output = self.logo_search_service.reassign_logo_urls(output, logo_urls) 
-            
-            logger.info("Logo URLs Achieved")   
+            output = self.logo_search_service.reassign_logo_urls(output, logo_urls)
+
+            logger.info("Logo URLs Achieved")
             return output
-            
+
         except Exception as e:
             logger.error(f"Error in generate_tools: {str(e)}")
             raise
@@ -154,6 +161,3 @@ if __name__ == "__main__":
     service = PortiaAIService()
     result = asyncio.run(service.generate_tools(msg))
     print(result)
-
-
-    

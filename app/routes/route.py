@@ -87,10 +87,12 @@ async def get_products(session_id: str, request: Request):
         try:
             # Create a session-specific PortiaAIService
             service = PortiaAIService(session_id=session_id)
-            
+
             # Get the conversation history for this session
             if session_id not in conversations or not conversations[session_id]:
-                logger.warning(f"No conversation history found for session {session_id}")
+                logger.warning(
+                    f"No conversation history found for session {session_id}"
+                )
                 return {
                     "products": [
                         {
