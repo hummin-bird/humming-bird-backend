@@ -27,9 +27,29 @@
       "task": "Find only ONE specific software tool (not a list, article, or category) for each stage. Consider tools within the list [Polygon, Superteam, Portia, StarkWare, Gensyn, wormhole, Internet Computer, Nether Mind, Zero, Tonk, encode club]. The tool should be an actual product like 'Django' or 'Express.js'. Return the following fields only: Tool name, One-sentence description, Official website link to the product, Direct link to the official product logo image, Do not return any list articles, blog posts, or roundups. Only return a known, real backend development tool.",
      "inputs": [ 
                   {
-                    "name": "$stage",
-                    "value": "$stages_to_build",
-                    "description": "The stages to build the product."
+                    "name": "$first_stage",
+                    "value": "$stages_to_build[0]",
+                    "description": "The first stage to build the product."
+                  },
+                  {
+                    "name": "$second_stage",
+                    "value": "$stages_to_build[1]",
+                    "description": "The second stage to build the product."
+                  },
+                  {
+                    "name": "$third_stage",
+                    "value": "$stages_to_build[2]",
+                    "description": "The third stage to build the product."
+                  },
+                  {
+                    "name": "$fourth_stage",
+                    "value": "$stages_to_build[3]",
+                    "description": "The fourth stage to build the product."
+                  },
+                  {
+                    "name": "$fifth_stage",
+                    "value": "$stages_to_build[4]",
+                    "description": "The fifth stage to build the product."
                   }
                 ],
       "tool_id": "search_tool",

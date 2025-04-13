@@ -23,7 +23,7 @@ class ProductSchema(BaseModel):
     id: str
     name: str
     description: str
-    image_url: AnyUrl
+    logo_url: AnyUrl
     website_url: AnyUrl
 
 

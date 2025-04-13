@@ -186,11 +186,9 @@ class LogoSearchService:
             return self.logo_cache["default"]
 
         logger.info(
-            f"Searching for logo URL for product: {product_name}, website: {product_website}"
+            f"Searching for logo URL for product: {product_name}"
         )
         query = f"The product is {product_name}"
-        if product_website:
-            query += f", the official website is {product_website}"
         
         query += ", Find the image URL of the product logo ending with png, jpg, or svg. Just give me the image URL, no additional information."
 
@@ -283,7 +281,8 @@ class LogoSearchService:
             f"Reassigning {len(logo_urls)} logo URLs to {len(products)} products"
         )
         for i in range(len(products)):
-            products[i]["image_url"] = logo_urls[i]
+            products[i]["logo_url"] = logo_urls[i]
+            products[i]["image_url"] = products[i].pop("logo_url")
             logger.info(f"Assigned logo URL to product {i + 1}: {logo_urls[i]}")
         return products
 
@@ -295,70 +294,70 @@ if __name__ == "__main__":
             "id": "1",
             "name": "PHP",
             "description": "A widely used server-side scripting language for backend web development.",
-            "image_url": "https://example.com/php.png",
+            "logo_url": "https://example.com/php.png",
             "website_url": "https://www.php.net/",
         },
         {
             "id": "2",
             "name": "Node.js",
             "description": "A JavaScript runtime built on Chrome's V8 JavaScript engine, ideal for building APIs and handling real-time data.",
-            "image_url": "https://example.com/nodejs.png",
+            "logo_url": "https://example.com/nodejs.png",
             "website_url": "https://nodejs.org/",
         },
         {
             "id": "3",
             "name": "Express.js",
             "description": "A minimalistic backend framework for Node.js that simplifies building web applications and APIs.",
-            "image_url": "https://example.com/express.png",
+            "logo_url": "https://example.com/express.png",
             "website_url": "https://expressjs.com/",
         },
         {
             "id": "4",
             "name": "Django",
             "description": "A high-level Python web framework that encourages rapid development and clean, pragmatic design.",
-            "image_url": "https://example.com/django.png",
+            "logo_url": "https://example.com/django.png",
             "website_url": "https://www.djangoproject.com/",
         },
         {
             "id": "5",
             "name": "AWS",
             "description": "A comprehensive cloud platform that provides hosting and scaling solutions for applications.",
-            "image_url": "https://example.com/aws.png",
+            "logo_url": "https://example.com/aws.png",
             "website_url": "https://aws.amazon.com/",
         },
         {
             "id": "6",
             "name": "ASP.NET Core",
             "description": "A cross-platform framework for building modern, cloud-based, internet-connected applications.",
-            "image_url": "https://example.com/aspnetcore.png",
+            "logo_url": "https://example.com/aspnetcore.png",
             "website_url": "https://dotnet.microsoft.com/apps/aspnet",
         },
         {
             "id": "7",
             "name": "Spring Boot",
             "description": "A framework that simplifies the setup of new Spring applications, making it easy to create stand-alone, production-grade applications.",
-            "image_url": "https://example.com/springboot.png",
+            "logo_url": "https://example.com/springboot.png",
             "website_url": "https://spring.io/projects/spring-boot",
         },
         {
             "id": "8",
             "name": "Flask",
             "description": "A lightweight WSGI web application framework in Python, designed for simplicity and flexibility.",
-            "image_url": "https://example.com/flask.png",
+            "logo_url": "https://example.com/flask.png",
             "website_url": "https://flask.palletsprojects.com/",
         },
         {
             "id": "9",
             "name": "Ruby on Rails",
             "description": "A server-side web application framework written in Ruby under the MIT License, emphasizing convention over configuration.",
-            "image_url": "https://example.com/rails.png",
+            "logo_url": "https://example.com/rails.png",
             "website_url": "https://rubyonrails.org/",
         },
         {
             "id": "10",
             "name": "Laravel",
             "description": "A PHP framework for web artisans, providing an elegant syntax and powerful tools for building applications.",
-            "image_url": "https://example.com/laravel.png",
+            "logo_url": "https://example.com/laravel.png",
             "website_url": "https://laravel.com/",
         },
     ]
