@@ -1,4 +1,3 @@
-from portiai_service import logger
 import re
 import requests
 from typing import List, Dict, Any
@@ -8,7 +7,9 @@ import json
 from dotenv import load_dotenv
 from app.logging_config import setup_logger
 
+# Get the logger for this module
 logger = setup_logger(__name__, "logo_search.log")
+
 load_dotenv()
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
@@ -170,6 +171,9 @@ class LogoSearchService:
                 return cached_url
         
         if "tools" in product_name:
+            if "default" not in self.logo_cache:
+                logger.warning("Default logo not found in cache")
+                return ""
             return self.logo_cache["default"]
         
         logger.info(f"Searching for logo URL for product: {product_name}, website: {product_website}")
@@ -213,8 +217,11 @@ class LogoSearchService:
                 self._save_cache()
                 logger.info(f"Saved logo URL for {product_name} to cache")
             else:
-                result = self.logo_cache["default"]
-                logger.info(f"No logo URL found for {product_name}, using default logo")
+                if "default" in self.logo_cache:
+                    result = self.logo_cache["default"]
+                    logger.info(f"No logo URL found for {product_name}, using default logo")
+                else:
+                    logger.warning(f"No logo URL found for {product_name} and no default logo available")
             return result
         except Exception as e:
             logger.error(f"Error searching for logo URL for {product_name}: {str(e)}")

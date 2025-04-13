@@ -1,25 +1,41 @@
 import re
-from typing import Dict, Any, List
-from dotenv import load_dotenv
 import os
 import sys
+import json
+import asyncio
+import logging
+from typing import Dict, Any, List
 from pathlib import Path
+from dotenv import load_dotenv
 from openai import OpenAI
+from app.logging_config import setup_logger
+from app.utils.websocket_manager import websocket_manager
+from app.service.logo_search import LogoSearchService
+
+# Load environment variables first
+load_dotenv()
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+
 
 # Add the project root to the Python path
 project_root = str(Path(__file__).parent.parent.parent)
 if project_root not in sys.path:
     sys.path.append(project_root)
 
-from app.logging_config import setup_logger
-
-import json
-
 # Get the logger for this module
 logger = setup_logger(__name__, "portia_ai.log")
 
 # Get the directory of the current script
 current_dir = os.path.dirname(os.path.abspath(__file__))
+
+# Create a custom handler for logs
+class LogHandler(logging.Handler):
+    def __init__(self, log_queue):
+        super().__init__()
+        self.log_queue = log_queue
+        
+    def emit(self, record):
+        asyncio.create_task(self.log_queue.put(record))
 
 def clean_text(text: str) -> str:
     """
@@ -31,8 +47,6 @@ def clean_text(text: str) -> str:
     text = re.sub(r'\s+', ' ', text).strip()
     return text
 
-load_dotenv()
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 from portia import (
     Config,
     Portia,
@@ -131,6 +145,7 @@ class PortiaAIService:
         except Exception as e:
             logger.error(f"Error in generate_tools: {str(e)}")
             raise
+
 
 if __name__ == "__main__":
     import asyncio
