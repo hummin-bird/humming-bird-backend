@@ -1,7 +1,9 @@
 # Encode AI Hackathon 2025 — Humming Bird
+<img width="1159" alt="Screenshot 2025-04-13 at 10 07 59 AM" src="https://github.com/user-attachments/assets/fdf30a44-ecbd-4538-8dae-29fe36dda8c3" />
 
 ## 🏆 About the Hackathon
 The **Encode AI Hackathon 2025** is a three-day immersive AI experience hosted in Shoreditch. It brings together top AI talent, developers, and industry leaders for hands-on innovation and collaboration. Our team embraced the opportunity to build **Humming Bird** — an intelligent, conversation-driven app that guides aspiring founders from idea to execution using smart AI workflows.
+
 
 ## 🚀 About Humming Bird
 **Humming Bird** is an AI-powered startup ideation and tool recommendation assistant that:
